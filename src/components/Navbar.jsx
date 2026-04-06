@@ -60,12 +60,12 @@ export default function Navbar() {
               >
                 <Lock className="w-4 h-4" /> Login
               </Link>
-              <Link
+              {/*<Link
                 href="/register"
                 className="bg-gray-100 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200"
               >
                 Register
-              </Link>
+              </Link>*/}
             </>
           )}
         </div>
