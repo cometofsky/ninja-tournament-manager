@@ -120,7 +120,7 @@ function StandingsTable({ standings, title, advancingCount }) {
           </thead>
           <tbody>
             {sorted.map((s, i) => (
-              <tr key={s.player} className={`border-b border-gray-100 ${showAdvancing && i < advancingCount ? 'bg-green-50' : ''}`}>
+              <tr key={s.player} className={`border-b border-gray-100 ${showAdvancing && i < advancingCount && s.points > 0 ? 'bg-green-50' : ''}`}>
                 <td className="px-2 py-1.5 font-medium text-gray-800 flex items-center gap-1">
                   {showAdvancing && i < advancingCount && <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />}
                   {s.player}
