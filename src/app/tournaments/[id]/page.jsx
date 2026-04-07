@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Trophy, Medal, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Trophy, Medal, ChevronRight, AlertTriangle, CheckCircle, Pencil } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -52,8 +52,11 @@ function ScoreForm({ onSubmit, loading }) {
 }
 
 // ── Match Card ───────────────────────────────────────────────────────────────
-function MatchCard({ match, token, onResult }) {
+function MatchCard({ match, token, onResult, onUpdate }) {
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editP1Score, setEditP1Score] = useState(match.player1Score || '');
+  const [editP2Score, setEditP2Score] = useState(match.player2Score || '');
   const isCompleted = match.status === 'completed';
   const isDraw = isCompleted && !match.winner;
 
