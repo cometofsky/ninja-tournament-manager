@@ -32,6 +32,13 @@ const standingSchema = new mongoose.Schema({
   groupId: { type: String, default: null },
 }, { _id: false });
 
+const renameHistorySchema = new mongoose.Schema({
+  oldName: { type: String, required: true },
+  newName: { type: String, required: true },
+  renamedAt: { type: Date, default: Date.now },
+  renamedBy: { type: String, default: null },
+}, { _id: false });
+
 const stageSchema = new mongoose.Schema({
   stageNumber: { type: Number, required: true },
   label: { type: String, required: true },
@@ -58,6 +65,7 @@ const tournamentSchema = new mongoose.Schema({
   stages: [stageSchema],
   matches: [matchSchema],
   standings: [standingSchema],
+  renameHistory: [renameHistorySchema],
   tieBreaks: [{
     stageNumber: Number,
     groupId: String,

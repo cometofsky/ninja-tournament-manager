@@ -40,9 +40,6 @@ export async function POST(req, { params }) {
 
     const match = t.matches.find(m => m.matchNumber === Number(matchNumber));
     if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 });
-    if (match.status === 'completed') {
-      return NextResponse.json({ error: 'Match already completed' }, { status: 400 });
-    }
 
     match.player1Score = p1s;
     match.player2Score = p2s;

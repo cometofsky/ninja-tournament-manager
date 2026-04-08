@@ -57,15 +57,35 @@ function ScoreForm({ onSubmit, loading }) {
 function MatchCard({ match, token, onResult, onUpdate }) {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [editP1Score, setEditP1Score] = useState(match.player1Score || '');
-  const [editP2Score, setEditP2Score] = useState(match.player2Score || '');
+  const [editP1Score, setEditP1Score] = useState(match.player1Score ?? '');
+  const [editP2Score, setEditP2Score] = useState(match.player2Score ?? '');
   const isCompleted = match.status === 'completed';
   const isDraw = isCompleted && !match.winner;
+
+  useEffect(() => {
+    setEditP1Score(match.player1Score ?? '');
+    setEditP2Score(match.player2Score ?? '');
+    setEditing(false);
+  }, [match.player1Score, match.player2Score, match.status]);
 
   async function handleScore(p1, p2) {
     setSaving(true);
     await onResult(match.matchNumber, p1, p2);
     setSaving(false);
+  }
+
+  async function handleEditSave() {
+    const p1 = Number(editP1Score);
+    const p2 = Number(editP2Score);
+    if (!Number.isFinite(p1) || !Number.isFinite(p2) || p1 < 0 || p2 < 0) {
+      alert('Enter valid non-negative scores');
+      return;
+    }
+
+    setSaving(true);
+    const ok = await onUpdate(match.matchNumber, p1, p2);
+    setSaving(false);
+    if (ok) setEditing(false);
   }
 
   return (
@@ -98,6 +118,58 @@ function MatchCard({ match, token, onResult, onUpdate }) {
       {isDraw && <p className="text-center text-xs text-gray-500 mt-1">Draw</p>}
       {token && !isCompleted && match.player1 && match.player2 && (
         <ScoreForm onSubmit={handleScore} loading={saving} />
+      )}
+      {token && isCompleted && match.player1 && match.player2 && (
+        <div className="mt-3">
+          {!editing ? (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs px-2.5 py-1.5 rounded-lg bg-white border border-gray-300 hover:border-indigo-400 text-gray-700 flex items-center gap-1"
+            >
+              <Pencil className="w-3.5 h-3.5" /> Edit Result
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  min={0}
+                  value={editP1Score}
+                  onChange={e => setEditP1Score(e.target.value)}
+                  className="w-14 border rounded-lg p-1.5 text-center text-sm font-bold focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+                />
+                <span className="text-gray-400 font-semibold">—</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={editP2Score}
+                  onChange={e => setEditP2Score(e.target.value)}
+                  className="w-14 border rounded-lg p-1.5 text-center text-sm font-bold focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleEditSave}
+                  disabled={saving}
+                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditP1Score(match.player1Score ?? '');
+                    setEditP2Score(match.player2Score ?? '');
+                    setEditing(false);
+                  }}
+                  disabled={saving}
+                  className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs hover:bg-gray-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -280,6 +352,10 @@ export default function TournamentPage({ params }) {
   const [advanceError, setAdvanceError] = useState('');
   const [pendingTiebreaks, setPendingTiebreaks] = useState([]);
   const [token, setToken] = useState(null);
+  const [renameFrom, setRenameFrom] = useState('');
+  const [renameTo, setRenameTo] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [renameError, setRenameError] = useState('');
 
   useEffect(() => {
     const refreshAuth = () => setToken(getStoredAdminToken());
@@ -330,11 +406,19 @@ export default function TournamentPage({ params }) {
       const data = await res.json();
       if (res.status === 401) {
         handleAuthFailure();
-        return;
+        return false;
       }
-      if (!res.ok) { alert(data.error || 'Failed to save result'); return; }
+      if (!res.ok) { alert(data.error || 'Failed to save result'); return false; }
       setT(data.tournament);
-    } catch { alert('Network error'); }
+      return true;
+    } catch {
+      alert('Network error');
+      return false;
+    }
+  }
+
+  async function handleUpdateResult(matchNumber, p1s, p2s) {
+    return handleResult(matchNumber, p1s, p2s);
   }
 
   async function handleAdvance() {
@@ -417,6 +501,56 @@ export default function TournamentPage({ params }) {
     } catch { alert('Network error'); }
   }
 
+  async function handleRenamePlayer() {
+    const oldName = renameFrom.trim();
+    const newName = renameTo.trim();
+
+    setRenameError('');
+    if (!oldName) {
+      setRenameError('Select a player to rename.');
+      return;
+    }
+    if (!newName) {
+      setRenameError('Enter a new player name.');
+      return;
+    }
+    if (oldName === newName) {
+      setRenameError('New name must be different.');
+      return;
+    }
+
+    if (!token) {
+      handleAuthFailure();
+      return;
+    }
+
+    setRenameLoading(true);
+    try {
+      const res = await fetch(`/api/tournaments/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ oldName, newName }),
+      });
+      const data = await res.json();
+      if (res.status === 401) {
+        handleAuthFailure();
+        return;
+      }
+      if (!res.ok) {
+        setRenameError(data.error || 'Failed to rename player');
+        return;
+      }
+
+      setT(data.tournament);
+      setRenameFrom('');
+      setRenameTo('');
+    } catch {
+      setRenameError('Network error');
+    } finally {
+      setRenameLoading(false);
+    }
+  }
+
   // ── Computed data ─────────────────────────────────────────────────────────
   const currentStage = useMemo(() => t?.stages?.[t.currentStageIndex], [t]);
 
@@ -462,6 +596,10 @@ export default function TournamentPage({ params }) {
   }, [t, currentStage]);
 
   const previousStages = useMemo(() => t ? t.stages.slice(0, t.currentStageIndex) : [], [t]);
+  const renameHistory = useMemo(
+    () => (t?.renameHistory || []).slice().sort((a, b) => new Date(b.renamedAt) - new Date(a.renamedAt)),
+    [t]
+  );
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -523,6 +661,70 @@ export default function TournamentPage({ params }) {
             )}
           </div>
 
+          {/* Rename history (public, on-demand) */}
+          <details className="bg-gray-50 rounded-xl border border-gray-200">
+            <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-sm">
+              Rename History ({renameHistory.length})
+            </summary>
+            <div className="px-5 pb-5">
+              {renameHistory.length === 0 ? (
+                <p className="text-sm text-gray-500">No player renames yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {renameHistory.map((entry, idx) => (
+                    <div key={`${entry.oldName}-${entry.newName}-${entry.renamedAt}-${idx}`} className="bg-white border rounded-lg px-3 py-2 text-sm">
+                      <p className="text-gray-800">
+                        <span className="font-semibold">{entry.oldName}</span> → <span className="font-semibold">{entry.newName}</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {new Date(entry.renamedAt).toLocaleString()}
+                        {entry.renamedBy ? ` by ${entry.renamedBy}` : ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
+
+          {token && t.status !== 'completed' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <h3 className="text-sm font-bold text-gray-700 mb-3">Update Player Name</h3>
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-end">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Current Name</label>
+                  <select
+                    value={renameFrom}
+                    onChange={e => setRenameFrom(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  >
+                    <option value="">Select player</option>
+                    {t.players.map(player => (
+                      <option key={player} value={player}>{player}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">New Name</label>
+                  <input
+                    value={renameTo}
+                    onChange={e => setRenameTo(e.target.value)}
+                    placeholder="Enter new name"
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  />
+                </div>
+                <button
+                  onClick={handleRenamePlayer}
+                  disabled={renameLoading}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {renameLoading ? 'Updating...' : 'Update Name'}
+                </button>
+              </div>
+              {renameError && <p className="text-red-600 text-sm mt-2">{renameError}</p>}
+            </div>
+          )}
+
           {/* Current Stage */}
           {currentStage && t.status !== 'completed' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -565,7 +767,7 @@ export default function TournamentPage({ params }) {
                                   <p className="text-xs text-gray-400 font-semibold mb-1 uppercase">Matchday {Number(r) - group.round + 1}</p>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     {groupByRound[r].map(m => (
-                                      <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} />
+                                      <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} />
                                     ))}
                                   </div>
                                 </div>
@@ -596,7 +798,7 @@ export default function TournamentPage({ params }) {
                         </p>
                       )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {rr.matches.map(m => <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} />)}
+                        {rr.matches.map(m => <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} />)}
                       </div>
                     </div>
                   ))}
