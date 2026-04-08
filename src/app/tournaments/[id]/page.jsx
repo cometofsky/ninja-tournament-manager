@@ -91,31 +91,31 @@ function MatchCard({ match, token, onResult, onUpdate }) {
   return (
     <div className={`border rounded-xl p-4 transition-shadow ${isCompleted ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:shadow-md'}`}>
       <div className="flex justify-between items-center mb-2">
-        <span className="text-xs text-gray-400 font-medium">Match #{match.matchNumber}</span>
+        <span className="text-sm text-gray-400 font-medium">Match #{match.matchNumber}</span>
         {isCompleted && <CheckCircle className="w-4 h-4 text-green-500" />}
       </div>
       <div className="space-y-1">
         <div className={`flex justify-between items-center rounded px-2 py-1 ${isCompleted && match.winner === match.player1 ? 'bg-green-50' : ''}`}>
-          <span className={`text-sm font-semibold ${isCompleted && match.winner === match.player1 ? 'text-green-700' : 'text-gray-800'}`}>
+          <span className={`text-base font-semibold ${isCompleted && match.winner === match.player1 ? 'text-green-700' : 'text-gray-800'}`}>
             {match.player1 || 'TBD'}
           </span>
           {isCompleted && match.player1Score != null && (
-            <span className={`text-sm font-bold ${match.winner === match.player1 ? 'text-green-700' : 'text-gray-500'}`}>{match.player1Score}</span>
+            <span className={`text-base font-bold ${match.winner === match.player1 ? 'text-green-700' : 'text-gray-500'}`}>{match.player1Score}</span>
           )}
           {isCompleted && match.winner === match.player1 && <Medal className="w-4 h-4 text-yellow-500 ml-1" />}
         </div>
-        <div className="text-center text-xs text-gray-400">vs</div>
+        <div className="text-center text-sm text-gray-400">vs</div>
         <div className={`flex justify-between items-center rounded px-2 py-1 ${isCompleted && match.winner === match.player2 ? 'bg-green-50' : ''}`}>
-          <span className={`text-sm font-semibold ${isCompleted && match.winner === match.player2 ? 'text-green-700' : 'text-gray-800'}`}>
+          <span className={`text-base font-semibold ${isCompleted && match.winner === match.player2 ? 'text-green-700' : 'text-gray-800'}`}>
             {match.player2 || 'TBD'}
           </span>
           {isCompleted && match.player2Score != null && (
-            <span className={`text-sm font-bold ${match.winner === match.player2 ? 'text-green-700' : 'text-gray-500'}`}>{match.player2Score}</span>
+            <span className={`text-base font-bold ${match.winner === match.player2 ? 'text-green-700' : 'text-gray-500'}`}>{match.player2Score}</span>
           )}
           {isCompleted && match.winner === match.player2 && <Medal className="w-4 h-4 text-yellow-500 ml-1" />}
         </div>
       </div>
-      {isDraw && <p className="text-center text-xs text-gray-500 mt-1">Draw</p>}
+      {isDraw && <p className="text-center text-sm text-gray-500 mt-1">Draw</p>}
       {token && !isCompleted && match.player1 && match.player2 && (
         <ScoreForm onSubmit={handleScore} loading={saving} />
       )}
@@ -124,7 +124,7 @@ function MatchCard({ match, token, onResult, onUpdate }) {
           {!editing ? (
             <button
               onClick={() => setEditing(true)}
-              className="text-xs px-2.5 py-1.5 rounded-lg bg-white border border-gray-300 hover:border-indigo-400 text-gray-700 flex items-center gap-1"
+                className="text-sm px-2.5 py-1.5 rounded-lg bg-white border border-gray-300 hover:border-indigo-400 text-gray-700 flex items-center gap-1"
             >
               <Pencil className="w-3.5 h-3.5" /> Edit Result
             </button>
@@ -151,7 +151,7 @@ function MatchCard({ match, token, onResult, onUpdate }) {
                 <button
                   onClick={handleEditSave}
                   disabled={saving}
-                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs hover:bg-indigo-700 disabled:opacity-50"
+                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -162,7 +162,7 @@ function MatchCard({ match, token, onResult, onUpdate }) {
                     setEditing(false);
                   }}
                   disabled={saving}
-                  className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs hover:bg-gray-200 disabled:opacity-50"
+                  className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -182,40 +182,40 @@ function StandingsTable({ standings, title, advancingCount }) {
   const showAdvancing = advancingCount && anyPlayed;
   return (
     <div>
-      {title && <h4 className="text-sm font-bold text-gray-700 mb-2">{title}</h4>}
+      {title && <h4 className="text-base font-bold text-gray-700 mb-2">{title}</h4>}
       <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-gray-100 text-gray-600">
-              <th className="text-left px-2 py-1.5 rounded-tl">Player</th>
-              <th className="px-2 py-1.5">P</th><th className="px-2 py-1.5">W</th>
-              <th className="px-2 py-1.5">D</th><th className="px-2 py-1.5">L</th>
-              <th className="px-2 py-1.5">GF</th><th className="px-2 py-1.5">GA</th>
-              <th className="px-2 py-1.5">GD</th>
-              <th className="px-2 py-1.5 font-bold rounded-tr">Pts</th>
+              <th className="text-left px-2 py-2 rounded-tl">Player</th>
+              <th className="px-2 py-2">P</th><th className="px-2 py-2">W</th>
+              <th className="px-2 py-2">D</th><th className="px-2 py-2">L</th>
+              <th className="px-2 py-2">GF</th><th className="px-2 py-2">GA</th>
+              <th className="px-2 py-2">GD</th>
+              <th className="px-2 py-2 font-bold rounded-tr">Pts</th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((s, i) => (
               <tr key={s.player} className={`border-b border-gray-100 ${showAdvancing && i < advancingCount && s.points > 0 ? 'bg-green-50' : ''}`}>
-                <td className="px-2 py-1.5 font-medium text-gray-800 flex items-center gap-1">
+                <td className="px-2 py-2 font-medium text-gray-800 flex items-center gap-1">
                   {showAdvancing && i < advancingCount && s.points > 0 && <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />}
                   {s.player}
                 </td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.played}</td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.wins}</td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.draws}</td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.losses}</td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.goalsFor}</td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.goalsAgainst}</td>
-                <td className="px-2 py-1.5 text-center text-gray-600">{s.goalsFor - s.goalsAgainst > 0 ? '+' : ''}{s.goalsFor - s.goalsAgainst}</td>
-                <td className="px-2 py-1.5 text-center font-bold text-indigo-700">{s.points}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.played}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.wins}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.draws}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.losses}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.goalsFor}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.goalsAgainst}</td>
+                <td className="px-2 py-2 text-center text-gray-600">{s.goalsFor - s.goalsAgainst > 0 ? '+' : ''}{s.goalsFor - s.goalsAgainst}</td>
+                <td className="px-2 py-2 text-center font-bold text-indigo-700">{s.points}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {showAdvancing && <p className="text-xs text-green-600 mt-1">🟢 Top {advancingCount} advance</p>}
+      {showAdvancing && <p className="text-sm text-green-600 mt-1">🟢 Top {advancingCount} advance</p>}
     </div>
   );
 }
@@ -356,6 +356,8 @@ export default function TournamentPage({ params }) {
   const [renameTo, setRenameTo] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
   const [renameError, setRenameError] = useState('');
+  const [playerFilter, setPlayerFilter] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('all');
 
   useEffect(() => {
     const refreshAuth = () => setToken(getStoredAdminToken());
@@ -554,6 +556,23 @@ export default function TournamentPage({ params }) {
   // ── Computed data ─────────────────────────────────────────────────────────
   const currentStage = useMemo(() => t?.stages?.[t.currentStageIndex], [t]);
 
+  useEffect(() => {
+    if (!currentStage || currentStage.type !== 'group') {
+      setSelectedGroupId('all');
+      return;
+    }
+    setSelectedGroupId(currentStage.groups?.[0]?.groupId || 'all');
+  }, [currentStage]);
+
+  const normalizedPlayerFilter = useMemo(() => playerFilter.trim().toLowerCase(), [playerFilter]);
+
+  const matchPassesFilter = useCallback((match) => {
+    if (!normalizedPlayerFilter) return true;
+    const p1 = (match.player1 || '').toLowerCase();
+    const p2 = (match.player2 || '').toLowerCase();
+    return p1.includes(normalizedPlayerFilter) || p2.includes(normalizedPlayerFilter);
+  }, [normalizedPlayerFilter]);
+
   const stageMatchesByRound = useMemo(() => {
     if (!t || !currentStage) return [];
     let stageMsList;
@@ -575,6 +594,24 @@ export default function TournamentPage({ params }) {
     }
     return Object.keys(byRound).sort((a, b) => a - b).map(r => ({ round: Number(r), matches: byRound[r] }));
   }, [t, currentStage]);
+
+  const filteredStageMatchesByRound = useMemo(
+    () => stageMatchesByRound
+      .map(rr => ({ ...rr, matches: rr.matches.filter(matchPassesFilter) }))
+      .filter(rr => rr.matches.length > 0),
+    [stageMatchesByRound, matchPassesFilter]
+  );
+
+  const totalFilteredCurrentStageMatches = useMemo(() => {
+    if (!currentStage || !t) return 0;
+    if (currentStage.type === 'group') {
+      return currentStage.groups.reduce((sum, group) => {
+        const gm = t.matches.filter(m => m.groupId === group.groupId);
+        return sum + gm.filter(matchPassesFilter).length;
+      }, 0);
+    }
+    return filteredStageMatchesByRound.reduce((sum, rr) => sum + rr.matches.length, 0);
+  }, [currentStage, t, filteredStageMatchesByRound, matchPassesFilter]);
 
   const roundStatus = useMemo(() => stageMatchesByRound.map(rr => ({
     round: rr.round, total: rr.matches.length,
@@ -626,7 +663,7 @@ export default function TournamentPage({ params }) {
             <div className="flex items-start justify-between mt-2 flex-wrap gap-2">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{t.name}</h1>
-                <p className="text-gray-500 mt-1 text-sm">
+                <p className="text-gray-500 mt-1 text-base">
                   <span className="capitalize">{t.initialFormat === 'group' ? 'Group Stage' : 'Round Robin'}</span>
                   {' · '}{t.players.length} players{' · '}
                   <span className={`font-semibold ${t.status === 'completed' ? 'text-green-600' : t.status === 'in-progress' ? 'text-blue-600' : 'text-gray-500'}`}>
@@ -647,7 +684,7 @@ export default function TournamentPage({ params }) {
           <div className="flex items-center gap-1 flex-wrap">
             {t.stages.map((s, i) => (
               <div key={i} className="flex items-center gap-1">
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${i === t.currentStageIndex ? 'bg-indigo-600 text-white' : s.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`text-sm px-2 py-1 rounded-full font-medium ${i === t.currentStageIndex ? 'bg-indigo-600 text-white' : s.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                   {s.label}
                 </span>
                 {i < t.stages.length - 1 && <ChevronRight className="w-3 h-3 text-gray-400" />}
@@ -656,14 +693,57 @@ export default function TournamentPage({ params }) {
             {advancing && (
               <>
                 <ChevronRight className="w-3 h-3 text-gray-400" />
-                <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium animate-pulse">Choose Next Stage...</span>
+                <span className="text-sm px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium animate-pulse">Choose Next Stage...</span>
               </>
             )}
           </div>
 
+          {currentStage && (
+            <div className="sticky top-[68px] z-30 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85 border border-gray-200 rounded-xl p-3 sm:p-4">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Find Matches By Player</label>
+                  <input
+                    value={playerFilter}
+                    onChange={e => setPlayerFilter(e.target.value)}
+                    placeholder="Type a player name"
+                    className="w-full border rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  />
+                </div>
+                <div className="text-sm text-gray-600 lg:text-right pt-0.5">
+                  Showing <span className="font-semibold text-indigo-700">{totalFilteredCurrentStageMatches}</span> match{totalFilteredCurrentStageMatches === 1 ? '' : 'es'}
+                </div>
+              </div>
+              {currentStage.type === 'group' && currentStage.groups.length > 1 && (
+                <div className="mt-3">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Jump To Group</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGroupId('all')}
+                      className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${selectedGroupId === 'all' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'}`}
+                    >
+                      All Groups
+                    </button>
+                    {currentStage.groups.map(group => (
+                      <button
+                        key={group.groupId}
+                        type="button"
+                        onClick={() => setSelectedGroupId(group.groupId)}
+                        className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${selectedGroupId === group.groupId ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'}`}
+                      >
+                        {group.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Rename history (public, on-demand) */}
           <details className="bg-gray-50 rounded-xl border border-gray-200">
-            <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-sm">
+            <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-base">
               Rename History ({renameHistory.length})
             </summary>
             <div className="px-5 pb-5">
@@ -672,11 +752,11 @@ export default function TournamentPage({ params }) {
               ) : (
                 <div className="space-y-2">
                   {renameHistory.map((entry, idx) => (
-                    <div key={`${entry.oldName}-${entry.newName}-${entry.renamedAt}-${idx}`} className="bg-white border rounded-lg px-3 py-2 text-sm">
+                    <div key={`${entry.oldName}-${entry.newName}-${entry.renamedAt}-${idx}`} className="bg-white border rounded-lg px-3 py-2 text-base">
                       <p className="text-gray-800">
                         <span className="font-semibold">{entry.oldName}</span> → <span className="font-semibold">{entry.newName}</span>
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-sm text-gray-500 mt-0.5">
                         {new Date(entry.renamedAt).toLocaleString()}
                         {entry.renamedBy ? ` by ${entry.renamedBy}` : ''}
                       </p>
@@ -689,14 +769,14 @@ export default function TournamentPage({ params }) {
 
           {token && t.status !== 'completed' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <h3 className="text-sm font-bold text-gray-700 mb-3">Update Player Name</h3>
+              <h3 className="text-base font-bold text-gray-700 mb-3">Update Player Name</h3>
               <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-end">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Current Name</label>
+                  <label className="block text-sm text-gray-500 mb-1">Current Name</label>
                   <select
                     value={renameFrom}
                     onChange={e => setRenameFrom(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="w-full border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   >
                     <option value="">Select player</option>
                     {t.players.map(player => (
@@ -705,23 +785,23 @@ export default function TournamentPage({ params }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">New Name</label>
+                  <label className="block text-sm text-gray-500 mb-1">New Name</label>
                   <input
                     value={renameTo}
                     onChange={e => setRenameTo(e.target.value)}
                     placeholder="Enter new name"
-                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="w-full border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   />
                 </div>
                 <button
                   onClick={handleRenamePlayer}
                   disabled={renameLoading}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {renameLoading ? 'Updating...' : 'Update Name'}
                 </button>
               </div>
-              {renameError && <p className="text-red-600 text-sm mt-2">{renameError}</p>}
+              {renameError && <p className="text-red-600 text-base mt-2">{renameError}</p>}
             </div>
           )}
 
@@ -747,11 +827,14 @@ export default function TournamentPage({ params }) {
               {/* Group Stage */}
               {currentStage.type === 'group' && (
                 <div className="space-y-8">
-                  {currentStage.groups.map(group => {
+                  {currentStage.groups
+                    .filter(group => selectedGroupId === 'all' || selectedGroupId === group.groupId)
+                    .map(group => {
                     const groupMatches = t.matches.filter(m => m.groupId === group.groupId);
+                    const filteredGroupMatches = groupMatches.filter(matchPassesFilter);
                     const groupStandings = (t.standings || []).filter(s => s.groupId === group.groupId);
                     const groupByRound = {};
-                    for (const m of groupMatches) {
+                    for (const m of filteredGroupMatches) {
                       groupByRound[m.round] = groupByRound[m.round] || [];
                       groupByRound[m.round].push(m);
                     }
@@ -760,22 +843,28 @@ export default function TournamentPage({ params }) {
                         <h3 className="text-lg font-bold text-indigo-700 mb-3 border-b pb-2">{group.name}</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div>
-                            <p className="text-sm font-semibold text-gray-600 mb-2">Matches</p>
+                            <p className="text-base font-semibold text-gray-600 mb-2">Matches</p>
                             <div className="space-y-4">
-                              {Object.keys(groupByRound).sort((a, b) => a - b).map(r => (
-                                <div key={r}>
-                                  <p className="text-xs text-gray-400 font-semibold mb-1 uppercase">Matchday {Number(r) - group.round + 1}</p>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    {groupByRound[r].map(m => (
-                                      <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} />
-                                    ))}
+                              {Object.keys(groupByRound).length > 0 ? (
+                                Object.keys(groupByRound).sort((a, b) => a - b).map(r => (
+                                  <div key={r}>
+                                    <p className="text-sm text-gray-400 font-semibold mb-1 uppercase">Matchday {Number(r) - group.round + 1}</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                      {groupByRound[r].map(m => (
+                                        <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} />
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))
+                              ) : (
+                                <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                  No matches found for this filter in {group.name}.
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-600 mb-2">Standings</p>
+                            <p className="text-base font-semibold text-gray-600 mb-2">Standings</p>
                             <StandingsTable standings={groupStandings} advancingCount={2} />
                           </div>
                         </div>
@@ -788,10 +877,10 @@ export default function TournamentPage({ params }) {
               {/* Round Robin or Knockout */}
               {(currentStage.type === 'round-robin' || currentStage.type === 'knockout') && (
                 <div className="space-y-6">
-                  {stageMatchesByRound.map(rr => (
+                  {filteredStageMatchesByRound.map(rr => (
                     <div key={rr.round}>
                       {currentStage.type === 'round-robin' && (
-                        <p className="text-sm text-gray-500 font-semibold mb-2 uppercase">
+                        <p className="text-base text-gray-500 font-semibold mb-2 uppercase">
                           Matchday {rr.round - currentStage.round + 1}
                           {roundStatus.find(rs => rs.round === rr.round)?.done === roundStatus.find(rs => rs.round === rr.round)?.total
                             ? <span className="text-green-600 ml-2">✓ Complete</span> : null}
@@ -802,9 +891,14 @@ export default function TournamentPage({ params }) {
                       </div>
                     </div>
                   ))}
+                  {filteredStageMatchesByRound.length === 0 && (
+                    <p className="text-base text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                      No matches found for this player filter in this stage.
+                    </p>
+                  )}
                   {currentStage.type === 'round-robin' && t.standings?.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-sm font-semibold text-gray-600 mb-2">Standings</p>
+                      <p className="text-base font-semibold text-gray-600 mb-2">Standings</p>
                       <StandingsTable standings={t.standings.filter(s => !s.groupId)} advancingCount={currentStage.advancingCount} />
                     </div>
                   )}
@@ -840,10 +934,10 @@ export default function TournamentPage({ params }) {
                 {allCurrentMatchesDone ? 'Advance to Next Round' : 'Complete all matches to advance'}
               </button>
               {!allCurrentMatchesDone && (
-                <p className="text-xs text-gray-500">All matches in the current stage must be completed before advancing.</p>
+                <p className="text-sm text-gray-500">All matches in the current stage must be completed before advancing.</p>
               )}
               {advanceError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2 text-sm max-w-lg">
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2 text-base max-w-lg">
                   {advanceError}
                 </div>
               )}
@@ -853,7 +947,7 @@ export default function TournamentPage({ params }) {
           {/* Previous stages */}
           {previousStages.length > 0 && (
             <details className="bg-gray-50 rounded-xl border border-gray-200">
-              <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-sm">
+              <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-base">
                 View Previous Stages ({previousStages.length})
               </summary>
               <div className="px-5 pb-5 space-y-6">
@@ -863,16 +957,16 @@ export default function TournamentPage({ params }) {
                     : t.matches.filter(m => m.round === stage.round);
                   return (
                     <div key={stage.stageNumber}>
-                      <h3 className="text-sm font-bold text-gray-700 mb-2 border-b pb-1">
-                        {stage.label} <span className="text-green-600 text-xs ml-1">✓ Completed</span>
+                      <h3 className="text-base font-bold text-gray-700 mb-2 border-b pb-1">
+                        {stage.label} <span className="text-green-600 text-sm ml-1">✓ Completed</span>
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {stageMs.map(m => (
-                          <div key={m.matchNumber} className="text-xs bg-white border rounded-lg p-2">
+                          <div key={m.matchNumber} className="text-sm bg-white border rounded-lg p-2">
                             <div className={`flex justify-between ${m.winner === m.player1 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
                               <span>{m.player1}</span><span>{m.player1Score}</span>
                             </div>
-                            <div className="text-center text-gray-300 text-xs">—</div>
+                            <div className="text-center text-gray-300 text-sm">—</div>
                             <div className={`flex justify-between ${m.winner === m.player2 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
                               <span>{m.player2}</span><span>{m.player2Score}</span>
                             </div>
