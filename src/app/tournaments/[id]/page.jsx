@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trophy, Medal, ChevronRight, AlertTriangle, CheckCircle, Pencil } from 'lucide-react';
@@ -358,6 +358,7 @@ export default function TournamentPage({ params }) {
   const [renameError, setRenameError] = useState('');
   const [playerFilter, setPlayerFilter] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('all');
+  const lastInitializedStageRef = useRef(null);
 
   useEffect(() => {
     const refreshAuth = () => setToken(getStoredAdminToken());
@@ -557,7 +558,17 @@ export default function TournamentPage({ params }) {
   const currentStage = useMemo(() => t?.stages?.[t.currentStageIndex], [t]);
 
   useEffect(() => {
-    if (!currentStage || currentStage.type !== 'group') {
+    if (!currentStage) {
+      if (lastInitializedStageRef.current !== null) {
+        setSelectedGroupId('all');
+        lastInitializedStageRef.current = null;
+      }
+      return;
+    }
+    // Only reset when the stage actually advances, not on every poll refresh
+    if (lastInitializedStageRef.current === currentStage.stageNumber) return;
+    lastInitializedStageRef.current = currentStage.stageNumber;
+    if (currentStage.type !== 'group') {
       setSelectedGroupId('all');
       return;
     }
