@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users, Trophy, ChevronRight, ChevronLeft, Shuffle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { clearAdminToken, getStoredAdminToken } from '@/lib/clientAuth';
 
 const STEPS = ['Players', 'Format', 'Review'];
 
@@ -20,7 +21,7 @@ export default function CreateTournamentPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const t = localStorage.getItem('adminToken');
+    const t = getStoredAdminToken();
     setToken(t);
   }, []);
 
@@ -99,6 +100,13 @@ export default function CreateTournamentPage() {
       if (res.ok) {
         router.push(`/tournaments/${data._id}`);
       } else {
+        if (res.status === 401) {
+          clearAdminToken();
+          setToken(null);
+          setError('Session expired. Please login again.');
+          router.push('/login');
+          return;
+        }
         setError(data.error || 'Failed to create tournament.');
         setStep(data.error?.includes('group') ? 1 : 0);
       }

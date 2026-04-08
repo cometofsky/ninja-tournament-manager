@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Trophy, Medal, ChevronRight, AlertTriangle, CheckCircle, Pencil } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { clearAdminToken, getStoredAdminToken } from '@/lib/clientAuth';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function sortStandings(s) {
@@ -271,6 +273,7 @@ function TiebreakResolver({ tiebreak, onResolve }) {
 // ── Main Tournament Page ──────────────────────────────────────────────────────
 export default function TournamentPage({ params }) {
   const { id } = params;
+  const router = useRouter();
   const [t, setT] = useState(null);
   const [loading, setLoading] = useState(true);
   const [advancing, setAdvancing] = useState(null);
@@ -279,8 +282,23 @@ export default function TournamentPage({ params }) {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    setToken(localStorage.getItem('adminToken'));
+    const refreshAuth = () => setToken(getStoredAdminToken());
+    refreshAuth();
+    window.addEventListener('storage', refreshAuth);
+    window.addEventListener('auth-change', refreshAuth);
+    return () => {
+      window.removeEventListener('storage', refreshAuth);
+      window.removeEventListener('auth-change', refreshAuth);
+    };
   }, []);
+
+  const handleAuthFailure = useCallback(() => {
+    clearAdminToken();
+    setToken(null);
+    setAdvanceError('Session expired. Please login again.');
+    alert('Session expired. Please login again.');
+    router.push('/login');
+  }, [router]);
 
   const fetchT = useCallback(async () => {
     try {
@@ -298,6 +316,11 @@ export default function TournamentPage({ params }) {
   }, [fetchT]);
 
   async function handleResult(matchNumber, p1s, p2s) {
+    if (!token) {
+      handleAuthFailure();
+      return;
+    }
+
     try {
       const res = await fetch(`/api/tournaments/${id}/matches/${matchNumber}/result`, {
         method: 'POST',
@@ -305,12 +328,21 @@ export default function TournamentPage({ params }) {
         body: JSON.stringify({ player1Score: p1s, player2Score: p2s }),
       });
       const data = await res.json();
+      if (res.status === 401) {
+        handleAuthFailure();
+        return;
+      }
       if (!res.ok) { alert(data.error || 'Failed to save result'); return; }
       setT(data.tournament);
     } catch { alert('Network error'); }
   }
 
   async function handleAdvance() {
+    if (!token) {
+      handleAuthFailure();
+      return;
+    }
+
     setAdvanceError(''); setAdvancing(null); setPendingTiebreaks([]);
     try {
       const res = await fetch(`/api/tournaments/${id}/advance`, {
@@ -318,6 +350,10 @@ export default function TournamentPage({ params }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      if (res.status === 401) {
+        handleAuthFailure();
+        return;
+      }
       if (!res.ok) {
         if (data.tieBreaks?.length > 0) {
           setPendingTiebreaks(data.tieBreaks);
@@ -337,6 +373,11 @@ export default function TournamentPage({ params }) {
   }
 
   async function handleSetNextFormat(nextFormat, numberOfGroups) {
+    if (!token) {
+      handleAuthFailure();
+      return;
+    }
+
     try {
       const res = await fetch(`/api/tournaments/${id}/set-next-format`, {
         method: 'POST',
@@ -344,12 +385,21 @@ export default function TournamentPage({ params }) {
         body: JSON.stringify({ nextFormat, numberOfGroups }),
       });
       const data = await res.json();
+      if (res.status === 401) {
+        handleAuthFailure();
+        return;
+      }
       if (!res.ok) { setAdvanceError(data.error || 'Failed to set format'); return; }
       setAdvancing(null); setT(data);
     } catch { setAdvanceError('Network error'); }
   }
 
   async function handleTiebreak(tb, selected) {
+    if (!token) {
+      handleAuthFailure();
+      return;
+    }
+
     try {
       const res = await fetch(`/api/tournaments/${id}/tiebreak`, {
         method: 'POST',
@@ -357,6 +407,10 @@ export default function TournamentPage({ params }) {
         body: JSON.stringify({ stageNumber: tb.stageNumber, groupId: tb.groupId, selected }),
       });
       const data = await res.json();
+      if (res.status === 401) {
+        handleAuthFailure();
+        return;
+      }
       if (!res.ok) { alert(data.error || 'Failed to resolve tiebreak'); return; }
       setPendingTiebreaks(prev => prev.filter(x => x.groupId !== tb.groupId));
       fetchT();

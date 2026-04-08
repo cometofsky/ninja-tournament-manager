@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, Trophy, Users, Plus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { getStoredAdminToken } from '@/lib/clientAuth';
 
 const FORMAT_LABEL = { 'round-robin': 'Round Robin', 'group': 'Group Stage' };
 const STATUS_COLORS = {
@@ -18,8 +19,15 @@ export default function HomePage() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    setIsAdmin(!!localStorage.getItem('adminToken'));
+    const refreshAuth = () => setIsAdmin(!!getStoredAdminToken());
+    refreshAuth();
+    window.addEventListener('storage', refreshAuth);
+    window.addEventListener('auth-change', refreshAuth);
     fetchTournaments();
+    return () => {
+      window.removeEventListener('storage', refreshAuth);
+      window.removeEventListener('auth-change', refreshAuth);
+    };
   }, []);
 
   async function fetchTournaments() {

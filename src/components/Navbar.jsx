@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Trophy, LogOut, Lock, Plus } from 'lucide-react';
+import { clearAdminToken, getStoredAdminToken } from '@/lib/clientAuth';
 
 export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
-  const refreshAuth = () => setIsAdmin(!!localStorage.getItem('adminToken'));
+  const refreshAuth = () => setIsAdmin(!!getStoredAdminToken());
 
   useEffect(() => {
     refreshAuth();
@@ -22,8 +23,7 @@ export default function Navbar() {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    window.dispatchEvent(new Event('auth-change'));
+    clearAdminToken();
     router.push('/');
   };
 
