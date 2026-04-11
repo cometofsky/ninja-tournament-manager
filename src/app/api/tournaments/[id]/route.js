@@ -91,6 +91,12 @@ export async function PATCH(req, { params }) {
       t.champion = rename(t.champion);
     }
 
+    // Update disqualified player names
+    if (t.disqualifiedPlayers?.length) {
+      t.disqualifiedPlayers = t.disqualifiedPlayers.map(rename);
+      t.markModified('disqualifiedPlayers');
+    }
+
     t.renameHistory.push({
       oldName: oldTrimmed,
       newName: newTrimmed,

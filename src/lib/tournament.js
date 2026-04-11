@@ -59,7 +59,14 @@ export function buildGroupStandings(completedMatches, players, groupId) {
   });
   completedMatches.forEach(m => {
     const s1 = map[m.player1]; const s2 = map[m.player2];
-    if (!s1 || !s2 || m.player1Score == null || m.player2Score == null) return;
+    if (!s1 || !s2) return;
+    // Abandoned match: -2 points to each participant
+    if (m.status === 'abandoned') {
+      s1.played++; s2.played++;
+      s1.points -= 2; s2.points -= 2;
+      return;
+    }
+    if (m.player1Score == null || m.player2Score == null) return;
     s1.played++; s2.played++;
     s1.goalsFor += m.player1Score; s1.goalsAgainst += m.player2Score;
     s2.goalsFor += m.player2Score; s2.goalsAgainst += m.player1Score;
@@ -108,16 +115,20 @@ export function getStageRoundSpan(stage) {
 }
 
 export function deriveAdvancingPlayers(t, stage) {
+  const disqualified = new Set(t.disqualifiedPlayers || []);
+
   if (stage.type === 'group') {
     const unresolved = t.tieBreaks.filter(tb => tb.stageNumber === stage.stageNumber && !tb.resolved);
     if (unresolved.length > 0) return { advancing: [], tieBreaks: unresolved };
 
     const advancing = [];
     for (const group of stage.groups) {
-      const gMatches = t.matches.filter(m => m.groupId === group.groupId && m.status === 'completed');
-      const standings = sortStandings(buildGroupStandings(gMatches, group.players, group.groupId));
+      const gMatches = t.matches.filter(m => m.groupId === group.groupId && (m.status === 'completed' || m.status === 'abandoned'));
+      const allStandings = sortStandings(buildGroupStandings(gMatches, group.players, group.groupId));
+      // Exclude disqualified from advancing
+      const standings = allStandings.filter(s => !disqualified.has(s.player));
       const advCount = 2;
-      if (standings.length < advCount) { advancing.push(...standings.map(s => s.player)); continue; }
+      if (standings.length <= advCount) { advancing.push(...standings.map(s => s.player)); continue; }
 
       const cutoffPoints = standings[advCount - 1].points;
       const nextPoints = standings[advCount]?.points;
@@ -142,18 +153,30 @@ export function deriveAdvancingPlayers(t, stage) {
 
   if (stage.type === 'round-robin') {
     const stageStart = stage.round, stageEnd = stage.round + getStageRoundSpan(stage) - 1;
-    const rrMatches = t.matches.filter(m => m.round >= stageStart && m.round <= stageEnd && m.status === 'completed');
+    const rrMatches = t.matches.filter(m => m.round >= stageStart && m.round <= stageEnd && (m.status === 'completed' || m.status === 'abandoned'));
     const stagePlayers = stage.players?.length > 0 ? stage.players
       : stage.groups.length > 0 ? stage.groups.flatMap(g => g.players)
       : t.players;
     const standings = sortStandings(buildGroupStandings(rrMatches, stagePlayers, null));
-    const count = Math.floor(standings.length / 2);
-    return { advancing: standings.slice(0, count).map(s => s.player), tieBreaks: [] };
+    const eligible = standings.filter(s => !disqualified.has(s.player));
+    const originalCount = stage.advancingCount || Math.floor(standings.length / 2);
+    const count = Math.min(originalCount, eligible.length);
+    return { advancing: eligible.slice(0, count).map(s => s.player), tieBreaks: [] };
   }
 
-  // Knockout
+  // Knockout: winner advances unless disqualified; abandoned = no one advances
   const stageMatches = t.matches.filter(m => m.round === stage.round);
-  const advancing = stageMatches.map(m => m.winner).filter(Boolean);
+  const advancing = stageMatches.flatMap(m => {
+    if (m.status === 'abandoned') return [];
+    const w = m.winner;
+    if (!w) return [];
+    if (disqualified.has(w)) {
+      // Disqualified winner: opponent advances if eligible
+      const other = w === m.player1 ? m.player2 : m.player1;
+      return (other && !disqualified.has(other)) ? [other] : [];
+    }
+    return [w];
+  });
   return { advancing, tieBreaks: [] };
 }
 
@@ -168,11 +191,16 @@ export async function buildAndAdvance(t, advancing, nextFormat, numberOfGroups) 
   if (nextFormat === 'group') {
     const ng = Number(numberOfGroups);
     if (!ng || ng < 2) throw new Error('At least 2 groups required');
-    if (advancing.length % ng !== 0) throw new Error(`${advancing.length} players cannot be equally divided into ${ng} groups`);
-    const perGroup = advancing.length / ng;
+    if (advancing.length < ng * 2) throw new Error(`Need at least 2 players per group (${ng} groups requires at least ${ng * 2} players)`);
+    // Distribute players as evenly as possible (some groups may have 1 extra)
+    const baseSize = Math.floor(advancing.length / ng);
+    const extras = advancing.length % ng;
     const groups = [];
+    let offset = 0;
     for (let g = 0; g < ng; g++) {
-      const gPlayers = advancing.slice(g * perGroup, (g + 1) * perGroup);
+      const size = baseSize + (g < extras ? 1 : 0);
+      const gPlayers = advancing.slice(offset, offset + size);
+      offset += size;
       const groupId = `s${nextStageNum}-g${g}`;
       groups.push({ groupId, name: `Group ${letters[g]}`, players: gPlayers, round: nextRound });
       const gm = generateRoundRobinMatches(gPlayers, nextRound, 'group', groupId, mn);

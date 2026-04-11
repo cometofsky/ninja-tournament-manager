@@ -36,8 +36,8 @@ export async function POST(req, { params }) {
     if (nextFormat === 'group') {
       const ng = Number(numberOfGroups);
       if (!ng || ng < 2) return NextResponse.json({ error: 'At least 2 groups required' }, { status: 400 });
-      if (advancing.length % ng !== 0) {
-        return NextResponse.json({ error: `${advancing.length} players cannot be equally divided into ${ng} groups` }, { status: 400 });
+      if (advancing.length < ng * 2) {
+        return NextResponse.json({ error: `Need at least 2 players per group (${ng} groups requires at least ${ng * 2} players)` }, { status: 400 });
       }
     }
 

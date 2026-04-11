@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trophy, Medal, ChevronRight, AlertTriangle, CheckCircle, Pencil } from 'lucide-react';
+import { Trophy, Medal, ChevronRight, AlertTriangle, CheckCircle, Pencil, Ban, UserX } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { clearAdminToken, getStoredAdminToken } from '@/lib/clientAuth';
 
@@ -54,13 +54,16 @@ function ScoreForm({ onSubmit, loading }) {
 }
 
 // ── Match Card ───────────────────────────────────────────────────────────────
-function MatchCard({ match, token, onResult, onUpdate }) {
+function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPlayers }) {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editP1Score, setEditP1Score] = useState(match.player1Score ?? '');
   const [editP2Score, setEditP2Score] = useState(match.player2Score ?? '');
+  const [abandoning, setAbandoning] = useState(false);
   const isCompleted = match.status === 'completed';
+  const isAbandoned = match.status === 'abandoned';
   const isDraw = isCompleted && !match.winner;
+  const dq = new Set(disqualifiedPlayers || []);
 
   useEffect(() => {
     setEditP1Score(match.player1Score ?? '');
@@ -88,16 +91,39 @@ function MatchCard({ match, token, onResult, onUpdate }) {
     if (ok) setEditing(false);
   }
 
+  async function handleAbandonClick() {
+    if (!confirm(`Abandon Match #${match.matchNumber}? Both players will receive -2 points.`)) return;
+    setAbandoning(true);
+    await onAbandon(match.matchNumber);
+    setAbandoning(false);
+  }
+
   return (
-    <div className={`border rounded-xl p-4 transition-shadow ${isCompleted ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:shadow-md'}`}>
+    <div className={`border rounded-xl p-4 transition-shadow ${
+      isAbandoned ? 'bg-red-50 border-red-200' :
+      isCompleted ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:shadow-md'
+    }`}>
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-gray-400 font-medium">Match #{match.matchNumber}</span>
         {isCompleted && <CheckCircle className="w-4 h-4 text-green-500" />}
+        {isAbandoned && (
+          <span className="flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+            <Ban className="w-3 h-3" /> Abandoned
+          </span>
+        )}
       </div>
       <div className="space-y-1">
-        <div className={`flex justify-between items-center rounded px-2 py-1 ${isCompleted && match.winner === match.player1 ? 'bg-green-50' : ''}`}>
-          <span className={`text-base font-semibold ${isCompleted && match.winner === match.player1 ? 'text-green-700' : 'text-gray-800'}`}>
+        <div className={`flex justify-between items-center rounded px-2 py-1 ${
+          isCompleted && match.winner === match.player1 ? 'bg-green-50' :
+          isAbandoned ? 'bg-red-50' : ''
+        }`}>
+          <span className={`text-base font-semibold ${
+            isCompleted && match.winner === match.player1 ? 'text-green-700' :
+            isAbandoned ? 'text-red-700' :
+            dq.has(match.player1) ? 'text-gray-400 line-through' : 'text-gray-800'
+          }`}>
             {match.player1 || 'TBD'}
+            {dq.has(match.player1) && <span className="ml-1 text-xs text-red-500 no-underline">[DQ]</span>}
           </span>
           {isCompleted && match.player1Score != null && (
             <span className={`text-base font-bold ${match.winner === match.player1 ? 'text-green-700' : 'text-gray-500'}`}>{match.player1Score}</span>
@@ -105,9 +131,17 @@ function MatchCard({ match, token, onResult, onUpdate }) {
           {isCompleted && match.winner === match.player1 && <Medal className="w-4 h-4 text-yellow-500 ml-1" />}
         </div>
         <div className="text-center text-sm text-gray-400">vs</div>
-        <div className={`flex justify-between items-center rounded px-2 py-1 ${isCompleted && match.winner === match.player2 ? 'bg-green-50' : ''}`}>
-          <span className={`text-base font-semibold ${isCompleted && match.winner === match.player2 ? 'text-green-700' : 'text-gray-800'}`}>
+        <div className={`flex justify-between items-center rounded px-2 py-1 ${
+          isCompleted && match.winner === match.player2 ? 'bg-green-50' :
+          isAbandoned ? 'bg-red-50' : ''
+        }`}>
+          <span className={`text-base font-semibold ${
+            isCompleted && match.winner === match.player2 ? 'text-green-700' :
+            isAbandoned ? 'text-red-700' :
+            dq.has(match.player2) ? 'text-gray-400 line-through' : 'text-gray-800'
+          }`}>
             {match.player2 || 'TBD'}
+            {dq.has(match.player2) && <span className="ml-1 text-xs text-red-500 no-underline">[DQ]</span>}
           </span>
           {isCompleted && match.player2Score != null && (
             <span className={`text-base font-bold ${match.winner === match.player2 ? 'text-green-700' : 'text-gray-500'}`}>{match.player2Score}</span>
@@ -116,8 +150,18 @@ function MatchCard({ match, token, onResult, onUpdate }) {
         </div>
       </div>
       {isDraw && <p className="text-center text-sm text-gray-500 mt-1">Draw</p>}
-      {token && !isCompleted && match.player1 && match.player2 && (
-        <ScoreForm onSubmit={handleScore} loading={saving} />
+      {isAbandoned && <p className="text-center text-sm text-red-500 mt-1 font-medium">−2 pts each</p>}
+      {token && !isCompleted && !isAbandoned && match.player1 && match.player2 && (
+        <div className="space-y-2 mt-3">
+          <ScoreForm onSubmit={handleScore} loading={saving} />
+          <button
+            onClick={handleAbandonClick}
+            disabled={abandoning}
+            className="text-sm px-2.5 py-1.5 rounded-lg bg-white border border-red-300 hover:border-red-500 text-red-600 flex items-center gap-1 disabled:opacity-50"
+          >
+            <Ban className="w-3.5 h-3.5" /> {abandoning ? 'Abandoning...' : 'Abandon Match'}
+          </button>
+        </div>
       )}
       {token && isCompleted && match.player1 && match.player2 && (
         <div className="mt-3">
@@ -228,8 +272,8 @@ function NextFormatSelector({ advancing, onSubmit }) {
 
   function findValidGroupCounts(n) {
     const valid = [];
-    for (let i = 2; i <= n / 2; i++) {
-      if (n % i === 0 && n / i >= 2) valid.push(i);
+    for (let i = 2; i <= Math.floor(n / 2); i++) {
+      if (Math.floor(n / i) >= 2) valid.push(i);
     }
     return valid;
   }
@@ -239,8 +283,8 @@ function NextFormatSelector({ advancing, onSubmit }) {
     if (!nextFormat) { setError('Please select a format.'); return; }
     if (nextFormat === 'group') {
       const ng = Number(numberOfGroups);
-      if (advancing.length % ng !== 0) {
-        setError(`${advancing.length} players cannot be equally divided into ${ng} groups.`);
+      if (advancing.length < ng * 2) {
+        setError(`Need at least 2 players per group (${ng} groups requires at least ${ng * 2} players).`);
         return;
       }
     }
@@ -278,7 +322,7 @@ function NextFormatSelector({ advancing, onSubmit }) {
                   {validGroupCounts.map(n => (
                     <button key={n} type="button" onClick={() => setNumberOfGroups(n)}
                       className={`px-3 py-1 rounded text-xs font-medium border ${Number(numberOfGroups) === n ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 hover:border-indigo-400'}`}>
-                      {n} groups ({advancing.length / n} each)
+                      {n} groups (~{Math.ceil(advancing.length / n)} each)
                     </button>
                   ))}
                 </div>
@@ -356,6 +400,9 @@ export default function TournamentPage({ params }) {
   const [renameTo, setRenameTo] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
   const [renameError, setRenameError] = useState('');
+  const [disqualifyPlayer, setDisqualifyPlayer] = useState('');
+  const [disqualifyLoading, setDisqualifyLoading] = useState(false);
+  const [disqualifyError, setDisqualifyError] = useState('');
   const [playerFilter, setPlayerFilter] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState('all');
   const lastInitializedStageRef = useRef(null);
@@ -422,6 +469,39 @@ export default function TournamentPage({ params }) {
 
   async function handleUpdateResult(matchNumber, p1s, p2s) {
     return handleResult(matchNumber, p1s, p2s);
+  }
+
+  async function handleAbandon(matchNumber) {
+    if (!token) { handleAuthFailure(); return; }
+    try {
+      const res = await fetch(`/api/tournaments/${id}/matches/${matchNumber}/abandon`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.status === 401) { handleAuthFailure(); return; }
+      if (!res.ok) { alert(data.error || 'Failed to abandon match'); return; }
+      setT(data.tournament);
+    } catch { alert('Network error'); }
+  }
+
+  async function handleDisqualify(player, action) {
+    if (!token) { handleAuthFailure(); return; }
+    setDisqualifyError('');
+    setDisqualifyLoading(true);
+    try {
+      const res = await fetch(`/api/tournaments/${id}/disqualify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ player, action }),
+      });
+      const data = await res.json();
+      if (res.status === 401) { handleAuthFailure(); return; }
+      if (!res.ok) { setDisqualifyError(data.error || 'Failed'); return; }
+      setT(data.tournament);
+      setDisqualifyPlayer('');
+    } catch { setDisqualifyError('Network error'); }
+    finally { setDisqualifyLoading(false); }
   }
 
   async function handleAdvance() {
@@ -626,7 +706,7 @@ export default function TournamentPage({ params }) {
 
   const roundStatus = useMemo(() => stageMatchesByRound.map(rr => ({
     round: rr.round, total: rr.matches.length,
-    done: rr.matches.filter(m => m.status === 'completed').length,
+    done: rr.matches.filter(m => m.status === 'completed' || m.status === 'abandoned').length,
   })), [stageMatchesByRound]);
 
   const allCurrentMatchesDone = useMemo(() => {
@@ -634,13 +714,13 @@ export default function TournamentPage({ params }) {
     if (currentStage.type === 'group') {
       const gIds = new Set(currentStage.groups.map(g => g.groupId));
       const gms = t.matches.filter(m => gIds.has(m.groupId));
-      return gms.length > 0 && gms.every(m => m.status === 'completed');
+      return gms.length > 0 && gms.every(m => m.status === 'completed' || m.status === 'abandoned');
     }
     const perGroup = currentStage.playerCount || 2;
     const span = currentStage.type === 'round-robin' ? Math.max(perGroup - 1, 1) : 1;
     const start = currentStage.round, end = start + span - 1;
     const sms = t.matches.filter(m => m.round >= start && m.round <= end);
-    return sms.length > 0 && sms.every(m => m.status === 'completed');
+    return sms.length > 0 && sms.every(m => m.status === 'completed' || m.status === 'abandoned');
   }, [t, currentStage]);
 
   const previousStages = useMemo(() => t ? t.stages.slice(0, t.currentStageIndex) : [], [t]);
@@ -752,7 +832,8 @@ export default function TournamentPage({ params }) {
             </div>
           )}
 
-          {/* Rename history (public, on-demand) */}
+          {/* Rename history — admin only */}
+          {token && (
           <details className="bg-gray-50 rounded-xl border border-gray-200">
             <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-base">
               Rename History ({renameHistory.length})
@@ -777,6 +858,7 @@ export default function TournamentPage({ params }) {
               )}
             </div>
           </details>
+          )}
 
           {token && t.status !== 'completed' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -813,6 +895,54 @@ export default function TournamentPage({ params }) {
                 </button>
               </div>
               {renameError && <p className="text-red-600 text-base mt-2">{renameError}</p>}
+            </div>
+          )}
+
+          {/* Disqualify Player — admin only */}
+          {token && t.status !== 'completed' && (
+            <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
+              <h3 className="text-base font-bold text-gray-700 mb-3 flex items-center gap-2">
+                <UserX className="w-4 h-4 text-red-500" /> Disqualify / Reinstate Player
+              </h3>
+              {(t.disqualifiedPlayers || []).length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {(t.disqualifiedPlayers || []).map(p => (
+                    <span key={p} className="flex items-center gap-1 bg-red-100 text-red-700 text-sm px-3 py-1 rounded-full font-medium">
+                      <UserX className="w-3 h-3" /> {p}
+                      <button
+                        onClick={() => handleDisqualify(p, 'reinstate')}
+                        className="ml-1 hover:text-red-900 font-bold"
+                        title="Reinstate"
+                      >×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm text-gray-500 mb-1">Select Player to Disqualify</label>
+                  <select
+                    value={disqualifyPlayer}
+                    onChange={e => setDisqualifyPlayer(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-red-300"
+                  >
+                    <option value="">Select player</option>
+                    {t.players
+                      .filter(p => !(t.disqualifiedPlayers || []).includes(p))
+                      .map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => disqualifyPlayer && handleDisqualify(disqualifyPlayer, 'disqualify')}
+                  disabled={!disqualifyPlayer || disqualifyLoading}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-red-700 disabled:opacity-50"
+                >
+                  {disqualifyLoading ? 'Updating...' : 'Disqualify'}
+                </button>
+              </div>
+              {disqualifyError && <p className="text-red-600 text-base mt-2">{disqualifyError}</p>}
             </div>
           )}
 
@@ -862,7 +992,7 @@ export default function TournamentPage({ params }) {
                                     <p className="text-sm text-gray-400 font-semibold mb-1 uppercase">Matchday {Number(r) - group.round + 1}</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                       {groupByRound[r].map(m => (
-                                        <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} />
+                                        <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} onAbandon={handleAbandon} disqualifiedPlayers={t.disqualifiedPlayers} />
                                       ))}
                                     </div>
                                   </div>
@@ -898,7 +1028,7 @@ export default function TournamentPage({ params }) {
                         </p>
                       )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                        {rr.matches.map(m => <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} />)}
+                        {rr.matches.map(m => <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} onAbandon={handleAbandon} disqualifiedPlayers={t.disqualifiedPlayers} />)}
                       </div>
                     </div>
                   ))}
@@ -955,13 +1085,13 @@ export default function TournamentPage({ params }) {
             </div>
           )}
 
-          {/* Previous stages */}
+          {/* Previous stages — always visible for public progression tracking */}
           {previousStages.length > 0 && (
-            <details className="bg-gray-50 rounded-xl border border-gray-200">
-              <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-base">
-                View Previous Stages ({previousStages.length})
-              </summary>
-              <div className="px-5 pb-5 space-y-6">
+            <div className="bg-gray-50 rounded-xl border border-gray-200">
+              <div className="px-5 py-3 border-b border-gray-200">
+                <h3 className="font-semibold text-gray-600 text-base">Previous Stages ({previousStages.length})</h3>
+              </div>
+              <div className="px-5 pb-5 pt-4 space-y-6">
                 {previousStages.map(stage => {
                   const stageMs = stage.type === 'group'
                     ? t.matches.filter(m => stage.groups.some(g => g.groupId === m.groupId))
@@ -973,14 +1103,23 @@ export default function TournamentPage({ params }) {
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {stageMs.map(m => (
-                          <div key={m.matchNumber} className="text-sm bg-white border rounded-lg p-2">
-                            <div className={`flex justify-between ${m.winner === m.player1 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
-                              <span>{m.player1}</span><span>{m.player1Score}</span>
-                            </div>
-                            <div className="text-center text-gray-300 text-sm">—</div>
-                            <div className={`flex justify-between ${m.winner === m.player2 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
-                              <span>{m.player2}</span><span>{m.player2Score}</span>
-                            </div>
+                          <div key={m.matchNumber} className={`text-sm border rounded-lg p-2 ${m.status === 'abandoned' ? 'bg-red-50 border-red-200' : 'bg-white'}`}>
+                            {m.status === 'abandoned' ? (
+                              <div className="text-center text-red-600 font-semibold py-1">
+                                <p>{m.player1} vs {m.player2}</p>
+                                <p className="text-xs mt-0.5">Abandoned (−2 pts each)</p>
+                              </div>
+                            ) : (
+                              <>
+                                <div className={`flex justify-between ${m.winner === m.player1 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
+                                  <span>{m.player1}</span><span>{m.player1Score}</span>
+                                </div>
+                                <div className="text-center text-gray-300 text-sm">—</div>
+                                <div className={`flex justify-between ${m.winner === m.player2 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
+                                  <span>{m.player2}</span><span>{m.player2Score}</span>
+                                </div>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -988,10 +1127,8 @@ export default function TournamentPage({ params }) {
                   );
                 })}
               </div>
-            </details>
+            </div>
           )}
-
-          {/* Completed state */}
           {t.status === 'completed' && (
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-300 rounded-xl p-8 text-center">
               <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-3" />

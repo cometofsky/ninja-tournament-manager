@@ -8,8 +8,9 @@ const matchSchema = new mongoose.Schema({
   player1Score: { type: Number, default: null },
   player2Score: { type: Number, default: null },
   winner: { type: String, default: null },
-  status: { type: String, enum: ['pending', 'completed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'completed', 'abandoned'], default: 'pending' },
   stageType: { type: String, enum: ['group', 'round-robin', 'knockout', 'semifinal', 'final'], default: 'knockout' },
+  abandoned: { type: Boolean, default: false },
   groupId: { type: String, default: null },
 }, { _id: false });
 
@@ -74,6 +75,7 @@ const tournamentSchema = new mongoose.Schema({
     resolved: { type: Boolean, default: false },
     selected: [String],
   }],
+  disqualifiedPlayers: [{ type: String }],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now },
   completedAt: { type: Date, default: null },

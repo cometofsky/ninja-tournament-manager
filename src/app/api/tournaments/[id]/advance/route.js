@@ -32,16 +32,16 @@ export async function POST(req, { params }) {
     const stage = t.stages[t.currentStageIndex];
     if (!stage) return NextResponse.json({ error: 'No active stage' }, { status: 400 });
 
-    // Check all stage matches are complete
+    // Check all stage matches are complete (including abandoned)
     let allDone;
     if (stage.type === 'group') {
       const gIds = stage.groups.map(g => g.groupId);
       const gMatches = t.matches.filter(m => gIds.includes(m.groupId));
-      allDone = gMatches.length > 0 && gMatches.every(m => m.status === 'completed');
+      allDone = gMatches.length > 0 && gMatches.every(m => m.status === 'completed' || m.status === 'abandoned');
     } else {
       const start = stage.round, end = stage.round + getStageRoundSpan(stage) - 1;
       const sMatches = t.matches.filter(m => m.round >= start && m.round <= end);
-      allDone = sMatches.length > 0 && sMatches.every(m => m.status === 'completed');
+      allDone = sMatches.length > 0 && sMatches.every(m => m.status === 'completed' || m.status === 'abandoned');
     }
     if (!allDone) {
       return NextResponse.json({ error: 'Complete all matches before advancing to the next round.' }, { status: 400 });
@@ -53,7 +53,11 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Resolve all tiebreaks before advancing.', tieBreaks }, { status: 400 });
     }
     if (!advancing || advancing.length === 0) {
-      return NextResponse.json({ error: 'No players advancing' }, { status: 400 });
+      // All players disqualified or all matches abandoned — tournament ends without champion
+      t.status = 'completed'; t.completedAt = new Date();
+      stage.status = 'completed';
+      await t.save();
+      return NextResponse.json(t);
     }
 
     // 1 player = champion
