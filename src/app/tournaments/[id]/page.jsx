@@ -798,41 +798,19 @@ export default function TournamentPage({ params }) {
           </div>
 
           {currentStage && (
-            <div className="sticky top-[68px] z-30 rounded-2xl border border-[#d7dfc8] bg-[#fbfcf7]/95 p-3 shadow-[0_10px_30px_rgba(19,42,19,0.06)] backdrop-blur supports-[backdrop-filter]:bg-[#fbfcf7]/88 sm:p-4">
-              <div className="space-y-3">
+            <div className="rounded-2xl border border-[#d7dfc8] bg-[#fbfcf7]/95 p-3 shadow-[0_10px_30px_rgba(19,42,19,0.06)] sm:p-4">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
                 <div>
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7D6D61]">Round Status</p>
-                    <span className="text-xs font-medium text-[#4F772D]">{currentStage.label}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                    {roundStatus.map(rs => {
-                      const isComplete = rs.done === rs.total;
-                      return (
-                        <div
-                          key={rs.round}
-                          className={`rounded-xl border px-3 py-2 ${isComplete ? 'border-[#b9cb92] bg-[#eef5df] text-[#264017]' : 'border-[#e2d7cc] bg-[#faf5f0] text-[#7D6D61]'}`}
-                        >
-                          <p className="text-[11px] font-semibold uppercase tracking-wide">Round {rs.round}</p>
-                          <p className="mt-1 text-base font-bold">{rs.done}/{rs.total}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <label className="block text-sm font-semibold text-[#314b24] mb-1">Find Matches By Player</label>
+                  <input
+                    value={playerFilter}
+                    onChange={e => setPlayerFilter(e.target.value)}
+                    placeholder="Type a player name"
+                    className={fieldClassName}
+                  />
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
-                  <div>
-                    <label className="block text-sm font-semibold text-[#314b24] mb-1">Find Matches By Player</label>
-                    <input
-                      value={playerFilter}
-                      onChange={e => setPlayerFilter(e.target.value)}
-                      placeholder="Type a player name"
-                      className={fieldClassName}
-                    />
-                  </div>
-                  <div className="text-sm text-[#6d655d] lg:text-right pt-0.5">
-                    Showing <span className="font-semibold text-[#4F772D]">{totalFilteredCurrentStageMatches}</span> match{totalFilteredCurrentStageMatches === 1 ? '' : 'es'}
-                  </div>
+                <div className="text-sm text-[#6d655d] lg:text-right pt-0.5">
+                  Showing <span className="font-semibold text-[#4F772D]">{totalFilteredCurrentStageMatches}</span> match{totalFilteredCurrentStageMatches === 1 ? '' : 'es'}
                 </div>
               </div>
               {currentStage.type === 'group' && currentStage.groups.length > 1 && (
@@ -1006,7 +984,11 @@ export default function TournamentPage({ params }) {
                     return (
                       <div key={group.groupId}>
                         <h3 className="text-lg font-bold text-[#35531f] mb-3 border-b border-[#e3e8d7] pb-2">{group.name}</h3>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="space-y-6">
+                          <div>
+                            <p className="text-base font-semibold text-[#5f554d] mb-2">Standings</p>
+                            <StandingsTable standings={groupStandings} advancingCount={2} />
+                          </div>
                           <div>
                             <p className="text-base font-semibold text-[#5f554d] mb-2">Matches</p>
                             <div className="space-y-4">
@@ -1028,10 +1010,6 @@ export default function TournamentPage({ params }) {
                               )}
                             </div>
                           </div>
-                          <div>
-                            <p className="text-base font-semibold text-[#5f554d] mb-2">Standings</p>
-                            <StandingsTable standings={groupStandings} advancingCount={2} />
-                          </div>
                         </div>
                       </div>
                     );
@@ -1042,6 +1020,12 @@ export default function TournamentPage({ params }) {
               {/* Round Robin or Knockout */}
               {(currentStage.type === 'round-robin' || currentStage.type === 'knockout') && (
                 <div className="space-y-6">
+                  {currentStage.type === 'round-robin' && t.standings?.length > 0 && (
+                    <div>
+                      <p className="text-base font-semibold text-[#5f554d] mb-2">Standings</p>
+                      <StandingsTable standings={t.standings.filter(s => !s.groupId)} advancingCount={currentStage.advancingCount} />
+                    </div>
+                  )}
                   {filteredStageMatchesByRound.map(rr => (
                     <div key={rr.round}>
                       {currentStage.type === 'round-robin' && (
@@ -1060,12 +1044,6 @@ export default function TournamentPage({ params }) {
                     <p className="text-base text-[#6d655d] bg-[#f7f8f3] border border-[#dde4cf] rounded-lg px-3 py-2">
                       No matches found for this player filter in this stage.
                     </p>
-                  )}
-                  {currentStage.type === 'round-robin' && t.standings?.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-base font-semibold text-[#5f554d] mb-2">Standings</p>
-                      <StandingsTable standings={t.standings.filter(s => !s.groupId)} advancingCount={currentStage.advancingCount} />
-                    </div>
                   )}
                 </div>
               )}
