@@ -39,49 +39,49 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="app-shell">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4">
         <div className="max-w-md mx-auto py-12">
-          <h1 className="text-3xl font-bold mb-6 text-center">Create Admin Account</h1>
-          <form onSubmit={submit} className="space-y-4 bg-white p-6 rounded-xl shadow">
+          <h1 className="text-3xl font-bold mb-6 text-center theme-page-title">Create Admin Account</h1>
+          <form onSubmit={submit} className="theme-card space-y-4 p-6 rounded-[1.5rem]">
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-sm font-medium mb-1 text-[#314b24]">Email</label>
               <input
                 value={email} onChange={e => setEmail(e.target.value)}
                 type="email" required
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="theme-input"
                 placeholder="you@example.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Password <span className="text-gray-400 font-normal text-xs">(min. 8 characters)</span>
+              <label className="block text-sm font-medium mb-1 text-[#314b24]">
+                Password <span className="text-[#8a8178] font-normal text-xs">(min. 8 characters)</span>
               </label>
               <input
                 value={password} onChange={e => setPassword(e.target.value)}
                 type="password" required
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="theme-input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium mb-1 text-[#314b24]">Confirm Password</label>
               <input
                 value={confirm} onChange={e => setConfirm(e.target.value)}
                 type="password" required
-                className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="theme-input"
               />
             </div>
             {error && <p className="text-red-600 text-sm">{error}</p>}
             <button
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-60 font-medium"
+              className="theme-primary-btn w-full"
             >
               {loading ? 'Creating account...' : 'Register'}
             </button>
-            <p className="text-sm text-center">
+            <p className="text-sm text-center theme-page-subtle">
               Already have an account?{' '}
-              <Link href="/login" className="text-indigo-600 hover:underline">Login</Link>
+              <Link href="/login" className="theme-link">Login</Link>
             </p>
           </form>
         </div>

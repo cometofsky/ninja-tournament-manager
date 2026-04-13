@@ -8,9 +8,9 @@ import { getStoredAdminToken } from '@/lib/clientAuth';
 
 const FORMAT_LABEL = { 'round-robin': 'Round Robin', 'group': 'Group Stage' };
 const STATUS_COLORS = {
-  'in-progress': 'bg-blue-100 text-blue-700',
-  'completed': 'bg-green-100 text-green-700',
-  'setup': 'bg-gray-100 text-gray-600',
+  'in-progress': 'theme-status-pill progress',
+  'completed': 'theme-status-pill complete',
+  'setup': 'theme-status-pill setup',
 };
 
 export default function HomePage() {
@@ -43,18 +43,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="app-shell">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-indigo-600" />
+          <h2 className="text-2xl font-bold theme-page-title flex items-center gap-2">
+            <Calendar className="w-6 h-6 text-[#4F772D]" />
             Tournaments
           </h2>
           {isAdmin && (
             <Link
               href="/create"
-              className="flex items-center gap-1.5 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700"
+              className="theme-primary-btn text-sm"
             >
               <Plus className="w-4 h-4" /> New Tournament
             </Link>
@@ -62,13 +62,13 @@ export default function HomePage() {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-gray-400">Loading tournaments...</div>
+          <div className="py-16 text-center theme-page-subtle">Loading tournaments...</div>
         ) : tournaments.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <Trophy className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium">No tournaments yet.</p>
+          <div className="theme-panel-soft rounded-[1.75rem] px-6 py-16 text-center">
+            <Trophy className="w-16 h-16 mx-auto mb-4 text-[#90A955] opacity-80" />
+            <p className="text-lg font-medium theme-page-title">No tournaments yet.</p>
             {isAdmin && (
-              <Link href="/create" className="mt-3 inline-block text-indigo-600 hover:underline text-sm">
+              <Link href="/create" className="theme-link mt-3 inline-block text-sm">
                 Create the first tournament →
               </Link>
             )}
@@ -81,25 +81,25 @@ export default function HomePage() {
                 <Link
                   key={t._id}
                   href={`/tournaments/${t._id}`}
-                  className="bg-white rounded-xl shadow hover:shadow-lg transition-all border border-transparent hover:border-indigo-200 p-5"
+                  className="theme-card rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:border-[#90A955] hover:shadow-[0_24px_50px_rgba(19,42,19,0.12)]"
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 leading-tight">{t.name}</h3>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-2 shrink-0 ${STATUS_COLORS[t.status] || 'bg-gray-100 text-gray-600'}`}>
+                    <h3 className="text-lg font-bold theme-page-title leading-tight">{t.name}</h3>
+                    <span className={`ml-2 shrink-0 ${STATUS_COLORS[t.status] || 'theme-status-pill setup'}`}>
                       {t.status === 'in-progress' ? 'In Progress' : t.status === 'completed' ? 'Completed' : t.status}
                     </span>
                   </div>
-                  <div className="space-y-1.5 text-sm text-gray-600">
+                  <div className="space-y-1.5 text-sm theme-page-subtle">
                     <p className="flex items-center gap-1.5">
-                      <Users className="w-4 h-4 text-gray-400" />
+                      <Users className="w-4 h-4 text-[#7D6D61]" />
                       {t.players?.length || 0} Players
                     </p>
                     <p className="flex items-center gap-1.5">
-                      <Trophy className="w-4 h-4 text-gray-400" />
+                      <Trophy className="w-4 h-4 text-[#7D6D61]" />
                       {FORMAT_LABEL[t.initialFormat] || t.initialFormat}
                     </p>
                     {currentStage && t.status !== 'completed' && (
-                      <p className="text-xs text-indigo-600 font-medium">
+                      <p className="text-xs font-medium text-[#4F772D]">
                         Current: {currentStage.label}
                       </p>
                     )}

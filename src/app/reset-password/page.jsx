@@ -49,11 +49,11 @@ function ResetPasswordForm() {
   if (success) {
     return (
       <div className="max-w-md mx-auto py-16 text-center">
-        <div className="bg-green-50 border border-green-200 rounded-xl p-8">
-          <Lock className="w-12 h-12 text-green-500 mx-auto mb-3" />
-          <h2 className="text-xl font-bold text-green-800 mb-2">Password Reset!</h2>
-          <p className="text-green-700 text-sm">Your password has been reset. Redirecting to login...</p>
-          <Link href="/login" className="mt-4 inline-block text-indigo-600 text-sm hover:underline">
+        <div className="theme-success-panel rounded-[1.5rem] p-8">
+          <Lock className="w-12 h-12 text-[#4F772D] mx-auto mb-3" />
+          <h2 className="text-xl font-bold text-[#35531f] mb-2">Password Reset!</h2>
+          <p className="text-[#35531f] text-sm">Your password has been reset. Redirecting to login...</p>
+          <Link href="/login" className="theme-link mt-4 inline-block text-sm">
             Go to Login now
           </Link>
         </div>
@@ -63,36 +63,36 @@ function ResetPasswordForm() {
 
   return (
     <div className="max-w-md mx-auto py-12">
-      <h1 className="text-3xl font-bold mb-2 text-center">Reset Password</h1>
-      <p className="text-gray-500 text-sm text-center mb-6">Enter your new password below.</p>
-      <form onSubmit={submit} className="space-y-4 bg-white p-6 rounded-xl shadow">
+      <h1 className="text-3xl font-bold mb-2 text-center theme-page-title">Reset Password</h1>
+      <p className="theme-page-subtle text-sm text-center mb-6">Enter your new password below.</p>
+      <form onSubmit={submit} className="theme-card space-y-4 p-6 rounded-[1.5rem]">
         <div>
-          <label className="block text-sm font-medium mb-1">New Password</label>
+          <label className="block text-sm font-medium mb-1 text-[#314b24]">New Password</label>
           <input
             type="password" required value={password} onChange={e => setPassword(e.target.value)}
             placeholder="Min. 8 characters"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="theme-input"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Confirm Password</label>
+          <label className="block text-sm font-medium mb-1 text-[#314b24]">Confirm Password</label>
           <input
             type="password" required value={confirm} onChange={e => setConfirm(e.target.value)}
             placeholder="Re-enter password"
-            className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="theme-input"
           />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         {!token ? (
-          <p className="text-sm text-center">
-            <Link href="/forgot-password" className="text-indigo-600 hover:underline">
+          <p className="text-sm text-center theme-page-subtle">
+            <Link href="/forgot-password" className="theme-link">
               Request a new reset link
             </Link>
           </p>
         ) : (
           <button
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-60 font-medium"
+            className="theme-primary-btn w-full"
           >
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
@@ -104,7 +104,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="app-shell">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4">
         {/* useSearchParams requires Suspense boundary in Next.js App Router */}

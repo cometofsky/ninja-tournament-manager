@@ -9,6 +9,7 @@ import { clearAdminToken, getStoredAdminToken } from '@/lib/clientAuth';
 export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const refreshAuth = () => setIsAdmin(!!getStoredAdminToken());
 
@@ -28,11 +29,11 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <header className="sticky top-0 z-50 border-b border-[#dfe6d2] bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/88">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center gap-3">
         <Link href="/" className="flex items-center gap-2">
-          <Trophy className="w-7 h-7 text-indigo-600" />
-          <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <Trophy className="w-7 h-7 text-[#4F772D]" />
+          <span className="text-xl font-bold bg-gradient-to-r from-[#132A13] to-[#4F772D] bg-clip-text text-transparent">
             Tournament Manager
           </span>
         </Link>
@@ -41,13 +42,13 @@ export default function Navbar() {
             <>
               <Link
                 href="/create"
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-1.5 text-sm font-medium hover:bg-indigo-700"
+                className={`px-4 py-2 rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors ${pathname === '/create' ? 'bg-[#132A13] text-white' : 'bg-[#4F772D] text-white hover:bg-[#3e5e23]'}`}
               >
                 <Plus className="w-4 h-4" /> Create
               </Link>
               <button
                 onClick={logout}
-                className="bg-gray-100 px-4 py-2 rounded-lg flex items-center gap-1.5 text-sm font-medium hover:bg-gray-200"
+                className="bg-[#ece8e0] px-4 py-2 rounded-xl flex items-center gap-1.5 text-sm font-medium text-[#5f554d] hover:bg-[#e2dbd1]"
               >
                 <LogOut className="w-4 h-4" /> Logout
               </button>
@@ -56,7 +57,7 @@ export default function Navbar() {
             <>
               <Link
                 href="/login"
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-1.5 text-sm font-medium hover:bg-indigo-700"
+                className={`px-4 py-2 rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors ${pathname === '/login' ? 'bg-[#132A13] text-white' : 'bg-[#4F772D] text-white hover:bg-[#3e5e23]'}`}
               >
                 <Lock className="w-4 h-4" /> Login
               </Link>

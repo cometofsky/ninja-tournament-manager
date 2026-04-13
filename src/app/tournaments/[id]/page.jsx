@@ -18,11 +18,15 @@ function sortStandings(s) {
 }
 
 function stageBadgeColor(type) {
-  if (type === 'group') return 'bg-blue-100 text-blue-700';
-  if (type === 'round-robin') return 'bg-purple-100 text-purple-700';
-  if (type === 'knockout') return 'bg-orange-100 text-orange-700';
-  return 'bg-gray-100 text-gray-600';
+  if (type === 'group') return 'bg-[#edf4df] text-[#35531f] border border-[#c8d7a4]';
+  if (type === 'round-robin') return 'bg-[#f4ede7] text-[#7D6D61] border border-[#e3d4c6]';
+  if (type === 'knockout') return 'bg-[#e9f1dd] text-[#4F772D] border border-[#bfd09d]';
+  return 'bg-gray-100 text-gray-600 border border-gray-200';
 }
+
+const fieldClassName = 'w-full h-11 rounded-xl border border-[#c7d1b2] bg-white px-3 text-base text-[#1f311a] shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#90A955]/35 focus:border-[#90A955]';
+const smallScoreInputClassName = 'w-14 h-10 rounded-lg border border-[#c7d1b2] bg-white text-center text-sm font-bold text-[#1f311a] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#90A955]/35 focus:border-[#90A955]';
+const primaryButtonClassName = 'bg-[#4F772D] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-[#3e5e23] disabled:opacity-50';
 
 // ── Score Entry Form ────────────────────────────────────────────────────────
 function ScoreForm({ onSubmit, loading }) {
@@ -39,14 +43,14 @@ function ScoreForm({ onSubmit, loading }) {
     <div className="flex gap-2 mt-3 items-center">
       <input
         type="number" min={0} value={p1} onChange={e => setP1(e.target.value)}
-        placeholder="0" className="w-14 border rounded-lg p-1.5 text-center text-sm font-bold focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+        placeholder="0" className={smallScoreInputClassName}
       />
       <span className="text-gray-400 font-semibold">—</span>
       <input
         type="number" min={0} value={p2} onChange={e => setP2(e.target.value)}
-        placeholder="0" className="w-14 border rounded-lg p-1.5 text-center text-sm font-bold focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+        placeholder="0" className={smallScoreInputClassName}
       />
-      <button onClick={handleSubmit} disabled={loading} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50">
+      <button onClick={handleSubmit} disabled={loading} className={primaryButtonClassName}>
         Save
       </button>
     </div>
@@ -101,11 +105,11 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
   return (
     <div className={`border rounded-xl p-4 transition-shadow ${
       isAbandoned ? 'bg-red-50 border-red-200' :
-      isCompleted ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200 hover:shadow-md'
+      isCompleted ? 'bg-[#fafbf7] border-[#dbe4c9]' : 'bg-white border-[#d9e0cd] hover:shadow-md'
     }`}>
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm text-gray-400 font-medium">Match #{match.matchNumber}</span>
-        {isCompleted && <CheckCircle className="w-4 h-4 text-green-500" />}
+        <span className="text-sm text-[#7D6D61] font-medium">Match #{match.matchNumber}</span>
+        {isCompleted && <CheckCircle className="w-4 h-4 text-[#4F772D]" />}
         {isAbandoned && (
           <span className="flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
             <Ban className="w-3 h-3" /> Abandoned
@@ -113,43 +117,47 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
         )}
       </div>
       <div className="space-y-1">
-        <div className={`flex justify-between items-center rounded px-2 py-1 ${
+        <div className={`grid grid-cols-[minmax(0,1fr)_3rem_1.25rem] items-center gap-2 rounded px-2 py-1 ${
           isCompleted && match.winner === match.player1 ? 'bg-green-50' :
           isAbandoned ? 'bg-red-50' : ''
         }`}>
-          <span className={`text-base font-semibold ${
-            isCompleted && match.winner === match.player1 ? 'text-green-700' :
+          <span className={`min-w-0 text-base font-semibold ${
+            isCompleted && match.winner === match.player1 ? 'text-[#35531f]' :
             isAbandoned ? 'text-red-700' :
             dq.has(match.player1) ? 'text-gray-400 line-through' : 'text-gray-800'
           }`}>
             {match.player1 || 'TBD'}
             {dq.has(match.player1) && <span className="ml-1 text-xs text-red-500 no-underline">[DQ]</span>}
           </span>
-          {isCompleted && match.player1Score != null && (
-            <span className={`text-base font-bold ${match.winner === match.player1 ? 'text-green-700' : 'text-gray-500'}`}>{match.player1Score}</span>
-          )}
-          {isCompleted && match.winner === match.player1 && <Medal className="w-4 h-4 text-yellow-500 ml-1" />}
+          <span className={`text-center text-base font-bold ${match.winner === match.player1 ? 'text-[#35531f]' : 'text-gray-500'}`}>
+            {isCompleted && match.player1Score != null ? match.player1Score : ''}
+          </span>
+          <span className="flex justify-end">
+            {isCompleted && match.winner === match.player1 && <Medal className="w-4 h-4 text-yellow-500" />}
+          </span>
         </div>
-        <div className="text-center text-sm text-gray-400">vs</div>
-        <div className={`flex justify-between items-center rounded px-2 py-1 ${
+        <div className="text-center text-sm text-[#a4968b]">vs</div>
+        <div className={`grid grid-cols-[minmax(0,1fr)_3rem_1.25rem] items-center gap-2 rounded px-2 py-1 ${
           isCompleted && match.winner === match.player2 ? 'bg-green-50' :
           isAbandoned ? 'bg-red-50' : ''
         }`}>
-          <span className={`text-base font-semibold ${
-            isCompleted && match.winner === match.player2 ? 'text-green-700' :
+          <span className={`min-w-0 text-base font-semibold ${
+            isCompleted && match.winner === match.player2 ? 'text-[#35531f]' :
             isAbandoned ? 'text-red-700' :
             dq.has(match.player2) ? 'text-gray-400 line-through' : 'text-gray-800'
           }`}>
             {match.player2 || 'TBD'}
             {dq.has(match.player2) && <span className="ml-1 text-xs text-red-500 no-underline">[DQ]</span>}
           </span>
-          {isCompleted && match.player2Score != null && (
-            <span className={`text-base font-bold ${match.winner === match.player2 ? 'text-green-700' : 'text-gray-500'}`}>{match.player2Score}</span>
-          )}
-          {isCompleted && match.winner === match.player2 && <Medal className="w-4 h-4 text-yellow-500 ml-1" />}
+          <span className={`text-center text-base font-bold ${match.winner === match.player2 ? 'text-[#35531f]' : 'text-gray-500'}`}>
+            {isCompleted && match.player2Score != null ? match.player2Score : ''}
+          </span>
+          <span className="flex justify-end">
+            {isCompleted && match.winner === match.player2 && <Medal className="w-4 h-4 text-yellow-500" />}
+          </span>
         </div>
       </div>
-      {isDraw && <p className="text-center text-sm text-gray-500 mt-1">Draw</p>}
+      {isDraw && <p className="text-center text-sm text-[#7D6D61] mt-1">Draw</p>}
       {isAbandoned && <p className="text-center text-sm text-red-500 mt-1 font-medium">−2 pts each</p>}
       {token && !isCompleted && !isAbandoned && match.player1 && match.player2 && (
         <div className="space-y-2 mt-3">
@@ -168,7 +176,7 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
           {!editing ? (
             <button
               onClick={() => setEditing(true)}
-                className="text-sm px-2.5 py-1.5 rounded-lg bg-white border border-gray-300 hover:border-indigo-400 text-gray-700 flex items-center gap-1"
+              className="text-sm px-2.5 py-1.5 rounded-lg bg-white border border-[#c7d1b2] hover:border-[#90A955] text-[#314b24] flex items-center gap-1"
             >
               <Pencil className="w-3.5 h-3.5" /> Edit Result
             </button>
@@ -180,7 +188,7 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
                   min={0}
                   value={editP1Score}
                   onChange={e => setEditP1Score(e.target.value)}
-                  className="w-14 border rounded-lg p-1.5 text-center text-sm font-bold focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+                  className={smallScoreInputClassName}
                 />
                 <span className="text-gray-400 font-semibold">—</span>
                 <input
@@ -188,14 +196,14 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
                   min={0}
                   value={editP2Score}
                   onChange={e => setEditP2Score(e.target.value)}
-                  className="w-14 border rounded-lg p-1.5 text-center text-sm font-bold focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+                  className={smallScoreInputClassName}
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={handleEditSave}
                   disabled={saving}
-                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
+                  className={primaryButtonClassName}
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -206,7 +214,7 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
                     setEditing(false);
                   }}
                   disabled={saving}
-                  className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50"
+                  className="bg-[#ece8e0] text-[#5f554d] px-3 py-1.5 rounded-lg text-sm hover:bg-[#e2dbd1] disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -226,11 +234,11 @@ function StandingsTable({ standings, title, advancingCount }) {
   const showAdvancing = advancingCount && anyPlayed;
   return (
     <div>
-      {title && <h4 className="text-base font-bold text-gray-700 mb-2">{title}</h4>}
+      {title && <h4 className="text-base font-bold text-[#314b24] mb-2">{title}</h4>}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
+        <table className="w-full text-sm border-collapse overflow-hidden rounded-xl">
           <thead>
-            <tr className="bg-gray-100 text-gray-600">
+            <tr className="bg-[#eef3e4] text-[#5f554d]">
               <th className="text-left px-2 py-2 rounded-tl">Player</th>
               <th className="px-2 py-2">P</th><th className="px-2 py-2">W</th>
               <th className="px-2 py-2">D</th><th className="px-2 py-2">L</th>
@@ -241,7 +249,7 @@ function StandingsTable({ standings, title, advancingCount }) {
           </thead>
           <tbody>
             {sorted.map((s, i) => (
-              <tr key={s.player} className={`border-b border-gray-100 ${showAdvancing && i < advancingCount && s.points > 0 ? 'bg-green-50' : ''}`}>
+              <tr key={s.player} className={`border-b border-[#e8ecdf] ${showAdvancing && i < advancingCount && s.points > 0 ? 'bg-[#f2f7e8]' : 'bg-white/80'}`}>
                 <td className="px-2 py-2 font-medium text-gray-800 flex items-center gap-1">
                   {showAdvancing && i < advancingCount && s.points > 0 && <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />}
                   {s.player}
@@ -253,13 +261,13 @@ function StandingsTable({ standings, title, advancingCount }) {
                 <td className="px-2 py-2 text-center text-gray-600">{s.goalsFor}</td>
                 <td className="px-2 py-2 text-center text-gray-600">{s.goalsAgainst}</td>
                 <td className="px-2 py-2 text-center text-gray-600">{s.goalsFor - s.goalsAgainst > 0 ? '+' : ''}{s.goalsFor - s.goalsAgainst}</td>
-                <td className="px-2 py-2 text-center font-bold text-indigo-700">{s.points}</td>
+                <td className="px-2 py-2 text-center font-bold text-[#4F772D]">{s.points}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {showAdvancing && <p className="text-sm text-green-600 mt-1">🟢 Top {advancingCount} advance</p>}
+      {showAdvancing && <p className="text-sm text-[#4F772D] mt-1">Top {advancingCount} advance</p>}
     </div>
   );
 }
@@ -294,17 +302,17 @@ function NextFormatSelector({ advancing, onSubmit }) {
   const validGroupCounts = findValidGroupCounts(advancing.length);
 
   return (
-    <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-6 mt-4">
+    <div className="bg-[#fbf8ef] border border-[#d8cfb4] rounded-xl p-6 mt-4">
       <div className="flex items-center gap-2 mb-3">
-        <AlertTriangle className="w-5 h-5 text-yellow-600" />
-        <h3 className="font-bold text-yellow-800">Choose Next Stage Format</h3>
+        <AlertTriangle className="w-5 h-5 text-[#7D6D61]" />
+        <h3 className="font-bold text-[#5f554d]">Choose Next Stage Format</h3>
       </div>
-      <p className="text-sm text-yellow-700 mb-4">
+      <p className="text-sm text-[#7D6D61] mb-4">
         <strong>{advancing.length} players</strong> are advancing. Choose how the next stage will be played:
       </p>
       <div className="font-medium text-xs text-gray-600 mb-2">Advancing: {advancing.join(', ')}</div>
       <div className="space-y-2 mb-4">
-        <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${nextFormat === 'round-robin' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+        <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${nextFormat === 'round-robin' ? 'border-[#90A955] bg-[#f2f7e8]' : 'border-[#ddd5cb] bg-white'}`}>
           <input type="radio" name="nf" value="round-robin" checked={nextFormat === 'round-robin'} onChange={() => setNextFormat('round-robin')} className="mt-0.5" />
           <div>
             <div className="font-semibold text-sm">🔄 Round Robin</div>
@@ -312,7 +320,7 @@ function NextFormatSelector({ advancing, onSubmit }) {
           </div>
         </label>
         {validGroupCounts.length > 0 && (
-          <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${nextFormat === 'group' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+          <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${nextFormat === 'group' ? 'border-[#90A955] bg-[#f2f7e8]' : 'border-[#ddd5cb] bg-white'}`}>
             <input type="radio" name="nf" value="group" checked={nextFormat === 'group'} onChange={() => setNextFormat('group')} className="mt-0.5" />
             <div className="flex-1">
               <div className="font-semibold text-sm">🏆 Group Stage</div>
@@ -321,7 +329,7 @@ function NextFormatSelector({ advancing, onSubmit }) {
                 <div className="flex flex-wrap gap-2">
                   {validGroupCounts.map(n => (
                     <button key={n} type="button" onClick={() => setNumberOfGroups(n)}
-                      className={`px-3 py-1 rounded text-xs font-medium border ${Number(numberOfGroups) === n ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 hover:border-indigo-400'}`}>
+                      className={`px-3 py-1 rounded text-xs font-medium border ${Number(numberOfGroups) === n ? 'bg-[#4F772D] text-white border-[#4F772D]' : 'border-[#c7d1b2] text-[#314b24] hover:border-[#90A955]'}`}>
                       {n} groups (~{Math.ceil(advancing.length / n)} each)
                     </button>
                   ))}
@@ -330,7 +338,7 @@ function NextFormatSelector({ advancing, onSubmit }) {
             </div>
           </label>
         )}
-        <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${nextFormat === 'knockout' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+        <label className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer ${nextFormat === 'knockout' ? 'border-[#90A955] bg-[#f2f7e8]' : 'border-[#ddd5cb] bg-white'}`}>
           <input type="radio" name="nf" value="knockout" checked={nextFormat === 'knockout'} onChange={() => setNextFormat('knockout')} className="mt-0.5" />
           <div>
             <div className="font-semibold text-sm">⚡ Knockout</div>
@@ -339,7 +347,7 @@ function NextFormatSelector({ advancing, onSubmit }) {
         </label>
       </div>
       {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
-      <button onClick={handleSubmit} className="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-indigo-700 flex items-center gap-2">
+      <button onClick={handleSubmit} className="bg-[#4F772D] text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-[#3e5e23] flex items-center gap-2">
         Confirm Format <ChevronRight className="w-4 h-4" />
       </button>
     </div>
@@ -359,18 +367,18 @@ function TiebreakResolver({ tiebreak, onResolve }) {
   }
 
   return (
-    <div className="bg-orange-50 border border-orange-300 rounded-xl p-5 mt-3">
+    <div className="bg-[#fbf7ef] border border-[#e0d3bf] rounded-xl p-5 mt-3">
       <div className="flex items-center gap-2 mb-2">
-        <AlertTriangle className="w-5 h-5 text-orange-600" />
-        <h4 className="font-bold text-orange-800">Tiebreak Required — {tiebreak.groupId}</h4>
+        <AlertTriangle className="w-5 h-5 text-[#7D6D61]" />
+        <h4 className="font-bold text-[#5f554d]">Tiebreak Required — {tiebreak.groupId}</h4>
       </div>
-      <p className="text-sm text-orange-700 mb-3">
+      <p className="text-sm text-[#7D6D61] mb-3">
         Select <strong>{tiebreak.requiredCount}</strong> player(s) to advance from: {tiebreak.candidates.join(', ')}
       </p>
       <div className="flex flex-wrap gap-2 mb-3">
         {tiebreak.candidates.map(p => (
           <button key={p} onClick={() => toggle(p)}
-            className={`px-3 py-1.5 rounded-lg text-sm border font-medium transition-colors ${selected.includes(p) ? 'bg-orange-500 text-white border-orange-500' : 'bg-white border-gray-300 hover:border-orange-400'}`}>
+            className={`px-3 py-1.5 rounded-lg text-sm border font-medium transition-colors ${selected.includes(p) ? 'bg-[#7D6D61] text-white border-[#7D6D61]' : 'bg-white border-[#d7c8bb] text-[#5f554d] hover:border-[#7D6D61]'}`}>
             {p} {selected.includes(p) ? '✓' : ''}
           </button>
         ))}
@@ -378,7 +386,7 @@ function TiebreakResolver({ tiebreak, onResolve }) {
       <button
         disabled={selected.length !== tiebreak.requiredCount}
         onClick={() => onResolve(tiebreak, selected)}
-        className="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-40"
+        className="bg-[#7D6D61] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#695c52] disabled:opacity-40"
       >
         Confirm ({selected.length}/{tiebreak.requiredCount} selected)
       </button>
@@ -652,7 +660,7 @@ export default function TournamentPage({ params }) {
       setSelectedGroupId('all');
       return;
     }
-    setSelectedGroupId(currentStage.groups?.[0]?.groupId || 'all');
+    setSelectedGroupId('all');
   }, [currentStage]);
 
   const normalizedPlayerFilter = useMemo(() => playerFilter.trim().toLowerCase(), [playerFilter]);
@@ -730,40 +738,40 @@ export default function TournamentPage({ params }) {
   );
 
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#f4f8ec] via-[#fbfaf5] to-[#ece7de]">
       <Navbar />
       <div className="py-12 text-center text-gray-400">Loading tournament...</div>
     </div>
   );
 
   if (!t) return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#f4f8ec] via-[#fbfaf5] to-[#ece7de]">
       <Navbar />
       <div className="py-12 text-center text-red-500">Tournament not found.</div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#f4f8ec] via-[#fbfaf5] to-[#ece7de]">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4">
         <div className="py-8 space-y-6">
           {/* Header */}
           <div>
-            <Link href="/" className="text-indigo-600 text-sm hover:underline">← All Tournaments</Link>
+            <Link href="/" className="text-[#4F772D] text-sm font-medium hover:underline">← All Tournaments</Link>
             <div className="flex items-start justify-between mt-2 flex-wrap gap-2">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{t.name}</h1>
-                <p className="text-gray-500 mt-1 text-base">
+                <p className="text-[#6d655d] mt-1 text-base">
                   <span className="capitalize">{t.initialFormat === 'group' ? 'Group Stage' : 'Round Robin'}</span>
                   {' · '}{t.players.length} players{' · '}
-                  <span className={`font-semibold ${t.status === 'completed' ? 'text-green-600' : t.status === 'in-progress' ? 'text-blue-600' : 'text-gray-500'}`}>
+                  <span className={`font-semibold ${t.status === 'completed' ? 'text-[#4F772D]' : t.status === 'in-progress' ? 'text-[#7D6D61]' : 'text-[#6d655d]'}`}>
                     {t.status === 'completed' ? 'Completed' : t.status === 'in-progress' ? 'In Progress' : t.status}
                   </span>
                 </p>
               </div>
               {t.status === 'completed' && t.champion && (
-                <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-2">
+                <div className="flex items-center gap-2 bg-[#f7f1dc] border border-[#d8c68a] rounded-xl px-4 py-2 shadow-sm">
                   <Trophy className="w-5 h-5 text-yellow-500" />
                   <span className="font-bold text-yellow-800">Champion: {t.champion}</span>
                 </div>
@@ -775,44 +783,66 @@ export default function TournamentPage({ params }) {
           <div className="flex items-center gap-1 flex-wrap">
             {t.stages.map((s, i) => (
               <div key={i} className="flex items-center gap-1">
-                <span className={`text-sm px-2 py-1 rounded-full font-medium ${i === t.currentStageIndex ? 'bg-indigo-600 text-white' : s.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`text-sm px-2 py-1 rounded-full font-medium ${i === t.currentStageIndex ? 'bg-[#4F772D] text-white' : s.status === 'completed' ? 'bg-[#e9f2da] text-[#35531f]' : 'bg-[#ece8e0] text-[#7D6D61]'}`}>
                   {s.label}
                 </span>
-                {i < t.stages.length - 1 && <ChevronRight className="w-3 h-3 text-gray-400" />}
+                {i < t.stages.length - 1 && <ChevronRight className="w-3 h-3 text-[#a4968b]" />}
               </div>
             ))}
             {advancing && (
               <>
-                <ChevronRight className="w-3 h-3 text-gray-400" />
-                <span className="text-sm px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 font-medium animate-pulse">Choose Next Stage...</span>
+                <ChevronRight className="w-3 h-3 text-[#a4968b]" />
+                <span className="text-sm px-2 py-1 rounded-full bg-[#f4ede7] text-[#7D6D61] font-medium animate-pulse">Choose Next Stage...</span>
               </>
             )}
           </div>
 
           {currentStage && (
-            <div className="sticky top-[68px] z-30 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85 border border-gray-200 rounded-xl p-3 sm:p-4">
-              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+            <div className="sticky top-[68px] z-30 rounded-2xl border border-[#d7dfc8] bg-[#fbfcf7]/95 p-3 shadow-[0_10px_30px_rgba(19,42,19,0.06)] backdrop-blur supports-[backdrop-filter]:bg-[#fbfcf7]/88 sm:p-4">
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Find Matches By Player</label>
-                  <input
-                    value={playerFilter}
-                    onChange={e => setPlayerFilter(e.target.value)}
-                    placeholder="Type a player name"
-                    className="w-full border rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                  />
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7D6D61]">Round Status</p>
+                    <span className="text-xs font-medium text-[#4F772D]">{currentStage.label}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {roundStatus.map(rs => {
+                      const isComplete = rs.done === rs.total;
+                      return (
+                        <div
+                          key={rs.round}
+                          className={`rounded-xl border px-3 py-2 ${isComplete ? 'border-[#b9cb92] bg-[#eef5df] text-[#264017]' : 'border-[#e2d7cc] bg-[#faf5f0] text-[#7D6D61]'}`}
+                        >
+                          <p className="text-[11px] font-semibold uppercase tracking-wide">Round {rs.round}</p>
+                          <p className="mt-1 text-base font-bold">{rs.done}/{rs.total}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600 lg:text-right pt-0.5">
-                  Showing <span className="font-semibold text-indigo-700">{totalFilteredCurrentStageMatches}</span> match{totalFilteredCurrentStageMatches === 1 ? '' : 'es'}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-start">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#314b24] mb-1">Find Matches By Player</label>
+                    <input
+                      value={playerFilter}
+                      onChange={e => setPlayerFilter(e.target.value)}
+                      placeholder="Type a player name"
+                      className={fieldClassName}
+                    />
+                  </div>
+                  <div className="text-sm text-[#6d655d] lg:text-right pt-0.5">
+                    Showing <span className="font-semibold text-[#4F772D]">{totalFilteredCurrentStageMatches}</span> match{totalFilteredCurrentStageMatches === 1 ? '' : 'es'}
+                  </div>
                 </div>
               </div>
               {currentStage.type === 'group' && currentStage.groups.length > 1 && (
-                <div className="mt-3">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Jump To Group</p>
+                <div className="mt-3 border-t border-[#e7eadf] pt-3">
+                  <p className="text-sm font-semibold text-[#314b24] mb-2">Jump To Group</p>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedGroupId('all')}
-                      className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${selectedGroupId === 'all' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'}`}
+                      className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${selectedGroupId === 'all' ? 'bg-[#4F772D] text-white border-[#4F772D]' : 'bg-white border-[#c7d1b2] text-[#314b24] hover:border-[#90A955]'}`}
                     >
                       All Groups
                     </button>
@@ -821,7 +851,7 @@ export default function TournamentPage({ params }) {
                         key={group.groupId}
                         type="button"
                         onClick={() => setSelectedGroupId(group.groupId)}
-                        className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${selectedGroupId === group.groupId ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'}`}
+                        className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${selectedGroupId === group.groupId ? 'bg-[#4F772D] text-white border-[#4F772D]' : 'bg-white border-[#c7d1b2] text-[#314b24] hover:border-[#90A955]'}`}
                       >
                         {group.name}
                       </button>
@@ -834,8 +864,8 @@ export default function TournamentPage({ params }) {
 
           {/* Rename history — admin only */}
           {token && (
-          <details className="bg-gray-50 rounded-xl border border-gray-200">
-            <summary className="px-5 py-3 font-semibold cursor-pointer text-gray-600 text-base">
+          <details className="bg-[#f7f8f3] rounded-xl border border-[#dde4cf]">
+            <summary className="px-5 py-3 font-semibold cursor-pointer text-[#5f554d] text-base">
               Rename History ({renameHistory.length})
             </summary>
             <div className="px-5 pb-5">
@@ -844,7 +874,7 @@ export default function TournamentPage({ params }) {
               ) : (
                 <div className="space-y-2">
                   {renameHistory.map((entry, idx) => (
-                    <div key={`${entry.oldName}-${entry.newName}-${entry.renamedAt}-${idx}`} className="bg-white border rounded-lg px-3 py-2 text-base">
+                    <div key={`${entry.oldName}-${entry.newName}-${entry.renamedAt}-${idx}`} className="bg-white border border-[#e1e7d5] rounded-lg px-3 py-2 text-base">
                       <p className="text-gray-800">
                         <span className="font-semibold">{entry.oldName}</span> → <span className="font-semibold">{entry.newName}</span>
                       </p>
@@ -861,15 +891,15 @@ export default function TournamentPage({ params }) {
           )}
 
           {token && t.status !== 'completed' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <h3 className="text-base font-bold text-gray-700 mb-3">Update Player Name</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-[#dde4cf] p-4">
+              <h3 className="text-base font-bold text-[#314b24] mb-3">Update Player Name</h3>
               <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 items-end">
                 <div>
                   <label className="block text-sm text-gray-500 mb-1">Current Name</label>
                   <select
                     value={renameFrom}
                     onChange={e => setRenameFrom(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className={fieldClassName}
                   >
                     <option value="">Select player</option>
                     {t.players.map(player => (
@@ -883,13 +913,13 @@ export default function TournamentPage({ params }) {
                     value={renameTo}
                     onChange={e => setRenameTo(e.target.value)}
                     placeholder="Enter new name"
-                    className="w-full border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className={fieldClassName}
                   />
                 </div>
                 <button
                   onClick={handleRenamePlayer}
                   disabled={renameLoading}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="h-11 bg-[#4F772D] text-white px-4 rounded-xl text-base font-medium hover:bg-[#3e5e23] disabled:opacity-50"
                 >
                   {renameLoading ? 'Updating...' : 'Update Name'}
                 </button>
@@ -901,7 +931,7 @@ export default function TournamentPage({ params }) {
           {/* Disqualify Player — admin only */}
           {token && t.status !== 'completed' && (
             <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
-              <h3 className="text-base font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <h3 className="text-base font-bold text-[#314b24] mb-3 flex items-center gap-2">
                 <UserX className="w-4 h-4 text-red-500" /> Disqualify / Reinstate Player
               </h3>
               {(t.disqualifiedPlayers || []).length > 0 && (
@@ -924,7 +954,7 @@ export default function TournamentPage({ params }) {
                   <select
                     value={disqualifyPlayer}
                     onChange={e => setDisqualifyPlayer(e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-red-300"
+                    className={fieldClassName}
                   >
                     <option value="">Select player</option>
                     {t.players
@@ -937,7 +967,7 @@ export default function TournamentPage({ params }) {
                 <button
                   onClick={() => disqualifyPlayer && handleDisqualify(disqualifyPlayer, 'disqualify')}
                   disabled={!disqualifyPlayer || disqualifyLoading}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-red-700 disabled:opacity-50"
+                  className="h-11 bg-red-600 text-white px-4 rounded-xl text-base font-medium hover:bg-red-700 disabled:opacity-50"
                 >
                   {disqualifyLoading ? 'Updating...' : 'Disqualify'}
                 </button>
@@ -948,21 +978,15 @@ export default function TournamentPage({ params }) {
 
           {/* Current Stage */}
           {currentStage && t.status !== 'completed' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#dde4cf] p-6">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className={`text-xs px-2 py-1 rounded-full font-semibold ${stageBadgeColor(currentStage.type)}`}>
                     {currentStage.type === 'group' ? 'Group Stage' : currentStage.type === 'round-robin' ? 'Round Robin' : 'Knockout'}
                   </span>
-                  <h2 className="text-xl font-bold">{currentStage.label}</h2>
+                  <h2 className="text-xl font-bold text-[#132A13]">{currentStage.label}</h2>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {roundStatus.map(rs => (
-                    <span key={rs.round} className="mr-3">
-                      Round {rs.round}: <span className={rs.done === rs.total ? 'text-green-600 font-semibold' : 'text-orange-500 font-semibold'}>{rs.done}/{rs.total}</span>
-                    </span>
-                  ))}
-                </div>
+                <div className="text-sm text-[#7D6D61]">Live stage view</div>
               </div>
 
               {/* Group Stage */}
@@ -981,15 +1005,15 @@ export default function TournamentPage({ params }) {
                     }
                     return (
                       <div key={group.groupId}>
-                        <h3 className="text-lg font-bold text-indigo-700 mb-3 border-b pb-2">{group.name}</h3>
+                        <h3 className="text-lg font-bold text-[#35531f] mb-3 border-b border-[#e3e8d7] pb-2">{group.name}</h3>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           <div>
-                            <p className="text-base font-semibold text-gray-600 mb-2">Matches</p>
+                            <p className="text-base font-semibold text-[#5f554d] mb-2">Matches</p>
                             <div className="space-y-4">
                               {Object.keys(groupByRound).length > 0 ? (
                                 Object.keys(groupByRound).sort((a, b) => a - b).map(r => (
                                   <div key={r}>
-                                    <p className="text-sm text-gray-400 font-semibold mb-1 uppercase">Matchday {Number(r) - group.round + 1}</p>
+                                    <p className="text-sm text-[#a4968b] font-semibold mb-1 uppercase">Matchday {Number(r) - group.round + 1}</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                       {groupByRound[r].map(m => (
                                         <MatchCard key={m.matchNumber} match={m} token={token} onResult={handleResult} onUpdate={handleUpdateResult} onAbandon={handleAbandon} disqualifiedPlayers={t.disqualifiedPlayers} />
@@ -998,14 +1022,14 @@ export default function TournamentPage({ params }) {
                                   </div>
                                 ))
                               ) : (
-                                <p className="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                <p className="text-sm text-[#6d655d] bg-[#f7f8f3] border border-[#dde4cf] rounded-lg px-3 py-2">
                                   No matches found for this filter in {group.name}.
                                 </p>
                               )}
                             </div>
                           </div>
                           <div>
-                            <p className="text-base font-semibold text-gray-600 mb-2">Standings</p>
+                            <p className="text-base font-semibold text-[#5f554d] mb-2">Standings</p>
                             <StandingsTable standings={groupStandings} advancingCount={2} />
                           </div>
                         </div>
@@ -1021,10 +1045,10 @@ export default function TournamentPage({ params }) {
                   {filteredStageMatchesByRound.map(rr => (
                     <div key={rr.round}>
                       {currentStage.type === 'round-robin' && (
-                        <p className="text-base text-gray-500 font-semibold mb-2 uppercase">
+                        <p className="text-base text-[#7D6D61] font-semibold mb-2 uppercase">
                           Matchday {rr.round - currentStage.round + 1}
                           {roundStatus.find(rs => rs.round === rr.round)?.done === roundStatus.find(rs => rs.round === rr.round)?.total
-                            ? <span className="text-green-600 ml-2">✓ Complete</span> : null}
+                            ? <span className="text-[#4F772D] ml-2">✓ Complete</span> : null}
                         </p>
                       )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -1033,13 +1057,13 @@ export default function TournamentPage({ params }) {
                     </div>
                   ))}
                   {filteredStageMatchesByRound.length === 0 && (
-                    <p className="text-base text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <p className="text-base text-[#6d655d] bg-[#f7f8f3] border border-[#dde4cf] rounded-lg px-3 py-2">
                       No matches found for this player filter in this stage.
                     </p>
                   )}
                   {currentStage.type === 'round-robin' && t.standings?.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-base font-semibold text-gray-600 mb-2">Standings</p>
+                      <p className="text-base font-semibold text-[#5f554d] mb-2">Standings</p>
                       <StandingsTable standings={t.standings.filter(s => !s.groupId)} advancingCount={currentStage.advancingCount} />
                     </div>
                   )}
@@ -1069,13 +1093,13 @@ export default function TournamentPage({ params }) {
                 onClick={handleAdvance}
                 disabled={!allCurrentMatchesDone}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all
-                  ${allCurrentMatchesDone ? 'bg-green-600 hover:bg-green-700 shadow-md hover:shadow-lg' : 'bg-gray-300 cursor-not-allowed text-gray-500'}`}
+                  ${allCurrentMatchesDone ? 'bg-[#4F772D] hover:bg-[#3e5e23] shadow-md hover:shadow-lg' : 'bg-gray-300 cursor-not-allowed text-gray-500'}`}
               >
                 <ChevronRight className="w-5 h-5" />
                 {allCurrentMatchesDone ? 'Advance to Next Round' : 'Complete all matches to advance'}
               </button>
               {!allCurrentMatchesDone && (
-                <p className="text-sm text-gray-500">All matches in the current stage must be completed before advancing.</p>
+                <p className="text-sm text-[#6d655d]">All matches in the current stage must be completed before advancing.</p>
               )}
               {advanceError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2 text-base max-w-lg">
@@ -1087,9 +1111,9 @@ export default function TournamentPage({ params }) {
 
           {/* Previous stages — always visible for public progression tracking */}
           {previousStages.length > 0 && (
-            <div className="bg-gray-50 rounded-xl border border-gray-200">
-              <div className="px-5 py-3 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-600 text-base">Previous Stages ({previousStages.length})</h3>
+            <div className="bg-[#f7f8f3] rounded-xl border border-[#dde4cf]">
+              <div className="px-5 py-3 border-b border-[#dde4cf]">
+                <h3 className="font-semibold text-[#5f554d] text-base">Previous Stages ({previousStages.length})</h3>
               </div>
               <div className="px-5 pb-5 pt-4 space-y-6">
                 {previousStages.map(stage => {
@@ -1098,12 +1122,12 @@ export default function TournamentPage({ params }) {
                     : t.matches.filter(m => m.round === stage.round);
                   return (
                     <div key={stage.stageNumber}>
-                      <h3 className="text-base font-bold text-gray-700 mb-2 border-b pb-1">
-                        {stage.label} <span className="text-green-600 text-sm ml-1">✓ Completed</span>
+                      <h3 className="text-base font-bold text-[#314b24] mb-2 border-b border-[#e1e7d5] pb-1">
+                        {stage.label} <span className="text-[#4F772D] text-sm ml-1">✓ Completed</span>
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {stageMs.map(m => (
-                          <div key={m.matchNumber} className={`text-sm border rounded-lg p-2 ${m.status === 'abandoned' ? 'bg-red-50 border-red-200' : 'bg-white'}`}>
+                          <div key={m.matchNumber} className={`text-sm border rounded-lg p-2 ${m.status === 'abandoned' ? 'bg-red-50 border-red-200' : 'bg-white border-[#dfe6d2]'}`}>
                             {m.status === 'abandoned' ? (
                               <div className="text-center text-red-600 font-semibold py-1">
                                 <p>{m.player1} vs {m.player2}</p>
@@ -1111,12 +1135,16 @@ export default function TournamentPage({ params }) {
                               </div>
                             ) : (
                               <>
-                                <div className={`flex justify-between ${m.winner === m.player1 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
-                                  <span>{m.player1}</span><span>{m.player1Score}</span>
+                                <div className={`grid grid-cols-[minmax(0,1fr)_3rem_1.25rem] items-center gap-2 ${m.winner === m.player1 ? 'font-bold text-[#35531f]' : 'text-gray-600'}`}>
+                                  <span className="min-w-0">{m.player1}</span>
+                                  <span className="text-center">{m.player1Score}</span>
+                                  <span className="flex justify-end">{m.winner === m.player1 ? <Medal className="w-4 h-4 text-yellow-500" /> : null}</span>
                                 </div>
                                 <div className="text-center text-gray-300 text-sm">—</div>
-                                <div className={`flex justify-between ${m.winner === m.player2 ? 'font-bold text-green-700' : 'text-gray-600'}`}>
-                                  <span>{m.player2}</span><span>{m.player2Score}</span>
+                                <div className={`grid grid-cols-[minmax(0,1fr)_3rem_1.25rem] items-center gap-2 ${m.winner === m.player2 ? 'font-bold text-[#35531f]' : 'text-gray-600'}`}>
+                                  <span className="min-w-0">{m.player2}</span>
+                                  <span className="text-center">{m.player2Score}</span>
+                                  <span className="flex justify-end">{m.winner === m.player2 ? <Medal className="w-4 h-4 text-yellow-500" /> : null}</span>
                                 </div>
                               </>
                             )}
@@ -1130,7 +1158,7 @@ export default function TournamentPage({ params }) {
             </div>
           )}
           {t.status === 'completed' && (
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-300 rounded-xl p-8 text-center">
+            <div className="bg-gradient-to-r from-[#f7f1dc] to-[#f4ead1] border border-[#d8c68a] rounded-xl p-8 text-center shadow-sm">
               <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-3" />
               <h2 className="text-3xl font-bold text-yellow-800 mb-1">Tournament Complete!</h2>
               {t.champion && <p className="text-xl text-yellow-700">🏆 Champion: <span className="font-extrabold">{t.champion}</span></p>}
