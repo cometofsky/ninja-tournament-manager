@@ -5,7 +5,7 @@ if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
   throw new Error('JWT_SECRET environment variable must be set in production.');
 }
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-insecure-secret';
-export const TOKEN_TTL = '8h';
+export const TOKEN_TTL = '7d';
 
 /**
  * Sign a JWT token.

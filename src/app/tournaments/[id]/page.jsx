@@ -103,13 +103,13 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
   }
 
   return (
-    <div className={`border rounded-xl p-4 transition-shadow ${
+    <div className={`border border-t-8 rounded-xl p-4 transition-shadow ${
       isAbandoned ? 'bg-red-50 border-red-200' :
-      isCompleted ? 'bg-[#fafbf7] border-[#dbe4c9]' : 'bg-white border-[#d9e0cd] hover:shadow-md'
+      isCompleted ? 'bg-white border-t-[#6aa33b]' : 'bg-[#fafbf7] border-[#a9aca4] hover:shadow-md'
     }`}>
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-[#7D6D61] font-medium">Match #{match.matchNumber}</span>
-        {isCompleted && <CheckCircle className="w-4 h-4 text-[#4F772D]" />}
+        {isCompleted && <CheckCircle className="w-6 h-6 text-[#4F772D]" />}
         {isAbandoned && (
           <span className="flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
             <Ban className="w-3 h-3" /> Abandoned
@@ -133,7 +133,7 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
             {isCompleted && match.player1Score != null ? match.player1Score : ''}
           </span>
           <span className="flex justify-end">
-            {isCompleted && match.winner === match.player1 && <Medal className="w-4 h-4 text-yellow-500" />}
+            {isCompleted && match.winner === match.player1 && <Medal className="w-10 h-10 text-yellow-500" />}
           </span>
         </div>
         <div className="text-center text-sm text-[#a4968b]">vs</div>
@@ -153,7 +153,7 @@ function MatchCard({ match, token, onResult, onUpdate, onAbandon, disqualifiedPl
             {isCompleted && match.player2Score != null ? match.player2Score : ''}
           </span>
           <span className="flex justify-end">
-            {isCompleted && match.winner === match.player2 && <Medal className="w-4 h-4 text-yellow-500" />}
+            {isCompleted && match.winner === match.player2 && <Medal className="w-10 h-10 text-yellow-500" />}
           </span>
         </div>
       </div>
