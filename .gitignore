@@ -14,9 +14,6 @@ out/
 .env.production
 .env.development
 
-# Vercel
-.vercel/
-
 # OS artifacts
 .DS_Store
 Thumbs.db

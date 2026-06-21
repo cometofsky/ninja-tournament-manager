@@ -4,8 +4,6 @@ import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 // GET /api/tournaments/[id]
 export async function GET(req, { params }) {
   try {

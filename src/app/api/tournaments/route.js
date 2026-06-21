@@ -7,8 +7,6 @@ import {
   buildGroupStandings,
 } from '@/lib/tournament';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 // GET /api/tournaments — list all tournaments
 export async function GET() {
   try {

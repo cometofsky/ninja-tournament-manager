@@ -5,8 +5,6 @@ import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 import { buildGroupStandings, getStageRoundSpan } from '@/lib/tournament';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 // POST /api/tournaments/[id]/matches/[matchNumber]/result
 export async function POST(req, { params }) {
   const auth = requireAdmin(req);

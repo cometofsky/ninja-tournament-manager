@@ -4,8 +4,6 @@ import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 import { signToken } from '@/lib/auth';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 export async function POST(req) {
   try {
     const { email, password } = await req.json();

@@ -4,8 +4,6 @@ import bcrypt from 'bcryptjs';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 export async function POST(req) {
   try {
     const { token, password } = await req.json();

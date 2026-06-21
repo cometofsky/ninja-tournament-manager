@@ -9,8 +9,6 @@ import {
   getStageRoundSpan,
 } from '@/lib/tournament';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 // POST /api/tournaments/[id]/advance
 export async function POST(req, { params }) {
   const auth = requireAdmin(req);

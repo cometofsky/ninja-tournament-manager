@@ -5,8 +5,6 @@ import User from '@/models/User';
 import { buildPasswordResetEmail, getAppName } from '@/lib/email';
 import { sendTransactionalEmail } from '@/lib/mailer';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 export async function POST(req) {
   try {
     const { email } = await req.json();

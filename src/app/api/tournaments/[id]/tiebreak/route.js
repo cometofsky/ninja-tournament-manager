@@ -3,8 +3,6 @@ import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 // POST /api/tournaments/[id]/tiebreak
 export async function POST(req, { params }) {
   const auth = requireAdmin(req);

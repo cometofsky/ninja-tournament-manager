@@ -4,8 +4,6 @@ import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 import { deriveAdvancingPlayers, buildAndAdvance } from '@/lib/tournament';
 
-export const maxDuration = 10; // Vercel Hobby plan limit
-
 // POST /api/tournaments/[id]/set-next-format
 export async function POST(req, { params }) {
   const auth = requireAdmin(req);
