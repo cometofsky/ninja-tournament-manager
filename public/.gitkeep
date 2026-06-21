@@ -1,0 +1,2 @@
+# Keeps public/ tracked in git so the Docker build's `COPY public ./public`
+# succeeds on a clean clone (git does not store empty directories).

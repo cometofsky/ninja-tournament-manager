@@ -1,11 +1,21 @@
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
 
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET environment variable must be set in production.');
-}
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-insecure-secret';
 export const TOKEN_TTL = '7d';
+
+/**
+ * Resolve the JWT secret lazily. `next build` evaluates route modules with
+ * NODE_ENV=production and no secret present, so a module-scope throw would abort
+ * the image build. The secret stays required at runtime in production and is
+ * never baked into the image.
+ * @returns {string}
+ */
+function getSecret() {
+  if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production.');
+  }
+  return process.env.JWT_SECRET || 'dev-only-insecure-secret';
+}
 
 /**
  * Sign a JWT token.
@@ -13,7 +23,7 @@ export const TOKEN_TTL = '7d';
  * @returns {string}
  */
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_TTL });
+  return jwt.sign(payload, getSecret(), { expiresIn: TOKEN_TTL });
 }
 
 /**
@@ -22,7 +32,7 @@ export function signToken(payload) {
  * @returns {object} decoded payload
  */
 export function verifyToken(token) {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, getSecret());
 }
 
 /**

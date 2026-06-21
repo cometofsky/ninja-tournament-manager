@@ -1,0 +1,96 @@
+# Tournament Manager — Docker deployment for the shared Traefik VPS.
+#
+# Networking model (mirrors the invoice_rafi_ninja stack on this host):
+#   Internet ─► Traefik (TLS + ACME) ──[shared `${TRAEFIK_NETWORK}` network]──► app:3000
+# NO host port is published; Traefik reaches the app over the shared docker
+# network. Mongo stays on the private `internal` network only — never exposed.
+#
+# Required env (in .env next to this file — never commit it):
+#   APP_DOMAIN, NEXT_PUBLIC_APP_URL, JWT_SECRET, MONGO_USER, MONGO_PASS
+# Defaults mirror the shared Traefik this VPS runs: network `traefik`,
+# HTTPS entrypoint `websecure`, ACME resolver `le`. HTTP→HTTPS redirect is
+# handled globally by Traefik, so only an HTTPS router is declared.
+name: ${APP_PREFIX:-tournament}
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL is required}
+    image: ${APP_PREFIX:-tournament}_app:latest
+    container_name: ${APP_PREFIX:-tournament}_app
+    restart: unless-stopped
+    # Resource caps bound this stack's blast radius on the shared host.
+    mem_limit: 768m
+    cpus: "1.0"
+    environment:
+      NODE_ENV: production
+      # Mongo connection is built from the bundled-Mongo credentials below.
+      MONGODB_URI: mongodb://${MONGO_USER:?MONGO_USER is required}:${MONGO_PASS:?MONGO_PASS is required}@mongo:27017/${MONGO_DB:-tournament_manager}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL is required}
+      APP_NAME: ${APP_NAME:-Tournament Manager}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - traefik
+      - internal
+    healthcheck:
+      # Hits the DB-touching /api/health route so a Mongo outage shows as unhealthy.
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik}"
+      - "traefik.http.routers.${APP_PREFIX:-tournament}.rule=${TRAEFIK_RULE:-Host(`${APP_DOMAIN:?APP_DOMAIN is required}`)}"
+      - "traefik.http.routers.${APP_PREFIX:-tournament}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
+      - "traefik.http.routers.${APP_PREFIX:-tournament}.tls=true"
+      - "traefik.http.routers.${APP_PREFIX:-tournament}.tls.certresolver=${TRAEFIK_CERTRESOLVER:-le}"
+      - "traefik.http.services.${APP_PREFIX:-tournament}.loadbalancer.server.port=3000"
+
+  mongo:
+    image: mongo:7
+    container_name: ${APP_PREFIX:-tournament}_mongo
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: "0.75"
+    # Enforce auth and cap the WiredTiger cache (sizes off host RAM by default).
+    command: ["mongod", "--auth", "--wiredTigerCacheSizeGB", "0.25"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:?MONGO_USER is required}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:?MONGO_PASS is required}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  # Shared external edge network that Traefik watches.
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}
+  # Private app⇄db network (auto-assigned subnet; never published).
+  internal:
+    driver: bridge
+
+volumes:
+  # Named volume keeps Mongo data outside the container — survives recreate.
+  mongo_data:
+    driver: local

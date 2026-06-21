@@ -1,0 +1,36 @@
+# Dependencies & build output (reinstalled/rebuilt inside the image)
+node_modules
+.next
+out
+
+# Secrets — never copy any env file into the build context/image
+.env
+.env.local
+.env*.local
+.env.production
+.env.development
+
+# VCS / editor / OS
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Deploy & docs not needed at build time
+Dockerfile
+.dockerignore
+docker-compose.yml
+scripts
+README.md
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+lessons_learned.md
+*.bak
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
