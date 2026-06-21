@@ -60,7 +60,7 @@ services:
       - "traefik.http.services.${APP_PREFIX:-tournament}.loadbalancer.server.port=3000"
 
   mongo:
-    image: mongo:7
+    image: mongo:8
     container_name: ${APP_PREFIX:-tournament}_mongo
     restart: unless-stopped
     mem_limit: 512m
