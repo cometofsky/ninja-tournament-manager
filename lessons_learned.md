@@ -15,3 +15,7 @@
 - Don't recreate the un-backed-up container: attach networks with a live edit and reuse the existing shared network (`app_net`) instead of re-networking `postgres_server`. Minimal blast radius for other tenants (invoice + notebook share that server).
 - Laravel: the authoritative `DB_HOST` was the compose `environment:` anchor, not the mounted `backend/.env` — container env overrides immutable phpdotenv. Recreate with `--no-deps` after removing the old DB from `depends_on`.
 - Regex bug I hit twice: (1) appending to the first `- ` list matched `volumes:` not `networks:` — scope the regex to the service's `networks:` block; (2) `re.sub` with the DOTALL `(?s)` flag made `.*` span newlines and deleted the rest of the file — use `(?m)` only for line-scoped block removal. Always `docker compose config` to validate before applying, and back up the file before each edit.
+
+## 2026-07-09
+- Generated comprehensive project documentation at the root `README.md` to serve as a high-fidelity reference for LLMs and developers.
+- Explicitly mapped Next.js 14 routing hierarchy, MongoDB model schemas, and complex tournament business rules (Berger rotation, disqualification impacts, tiebreaks, score-recalculation).
