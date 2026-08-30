@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test \"tests/*.test.mjs\""
+    "test": "node --test \"tests/*.test.mjs\"",
+    "check:claims": "node scripts/check-doc-claims.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

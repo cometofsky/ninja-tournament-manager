@@ -19,3 +19,8 @@
 ## 2026-07-09
 - Generated comprehensive project documentation at the root `README.md` to serve as a high-fidelity reference for LLMs and developers.
 - Explicitly mapped Next.js 14 routing hierarchy, MongoDB model schemas, and complex tournament business rules (Berger rotation, disqualification impacts, tiebreaks, score-recalculation).
+
+## 2026-08-30
+- Audited instruction files vs codebase: ratcheted 18 code facts in `AGENTS.md` into executable claim anchors verified by `check-doc-claims.js`.
+- Injection guard in `check-doc-claims.js` bans `;` across commands; avoid trailing semicolons inside grep patterns.
+
