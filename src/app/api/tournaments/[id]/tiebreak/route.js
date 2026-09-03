@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
+import { broadcastTiebreakResolved } from '@/lib/events';
 
 // POST /api/tournaments/[id]/tiebreak
 export async function POST(req, { params }) {
@@ -32,6 +33,15 @@ export async function POST(req, { params }) {
     tb.resolved = true;
     tb.selected = selected;
     await t.save();
+
+    broadcastTiebreakResolved(id, {
+      action: 'tiebreak',
+      stageNumber,
+      groupId,
+      selected,
+      candidates: tb.candidates,
+      tieBreaks: t.tieBreaks,
+    }, t);
 
     return NextResponse.json({ success: true });
   } catch {

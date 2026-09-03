@@ -25,7 +25,7 @@ Next.js 14 (App Router, `src/app/`), React 18, JavaScript (no TypeScript — `js
 - Auth/session logic is centralized in `src/lib/auth.js` (server) and `src/lib/clientAuth.js` (client); email goes through `src/lib/mailer.js` (templates in `src/lib/email/`). Reuse these — do not re-implement JWT handling or mail transport inline.
 - This is a JavaScript repo: new files are `.js`/`.jsx`, not `.ts`/`.tsx`.
 - Generated / vendored dirs — never hand-edit or commit as source: `.next/`, `out/`, `node_modules/` (all in `.gitignore`). `.env*` files are gitignored — never commit secrets.
-- `src/app/api/stream/route.js` is a **placeholder** returning `501 Not Implemented` — there is no live SSE/real-time layer yet. `src/app/api/dev/email-preview/route.js` is a dev-only helper. Don't assume either is production behaviour.
+- `src/app/api/stream/route.js` provides the live Server-Sent Events (SSE) streaming endpoint for real-time tournament and match updates. `src/app/api/dev/email-preview/route.js` is a dev-only helper. Don't assume either is production behaviour.
 
 ## Where truth lives
 - `README.md` — the high-fidelity domain reference (Next.js 14 routing map, Mongo schemas, Berger round-robin rotation, tiebreak resolution, disqualification impacts, rename cascades, score recalculation). Read it before touching tournament logic.

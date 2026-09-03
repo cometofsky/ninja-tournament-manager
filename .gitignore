@@ -25,4 +25,6 @@ yarn-error.log*
 
 # Tooling artifacts
 graphify-out/
+.agents/
+ORIGINAL_REQUEST.md
 

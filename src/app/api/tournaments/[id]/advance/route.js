@@ -8,6 +8,7 @@ import {
   buildAndAdvance,
   getStageRoundSpan,
 } from '@/lib/tournament';
+import { broadcastStageAdvance, broadcastTournamentComplete } from '@/lib/events';
 
 // POST /api/tournaments/[id]/advance
 export async function POST(req, { params }) {
@@ -55,6 +56,12 @@ export async function POST(req, { params }) {
       t.status = 'completed'; t.completedAt = new Date();
       stage.status = 'completed';
       await t.save();
+      broadcastTournamentComplete(id, {
+        champion: null,
+        completedAt: t.completedAt,
+        message: 'Tournament completed without champion',
+        standings: t.standings,
+      }, t);
       return NextResponse.json(t);
     }
 
@@ -63,18 +70,38 @@ export async function POST(req, { params }) {
       t.status = 'completed'; t.champion = advancing[0]; t.completedAt = new Date();
       stage.status = 'completed';
       await t.save();
+      broadcastTournamentComplete(id, {
+        champion: t.champion,
+        completedAt: t.completedAt,
+        message: `${t.champion} crowned champion`,
+        standings: t.standings,
+      }, t);
       return NextResponse.json(t);
     }
 
     // ≤4 players → auto-build knockout
     if (advancing.length <= 4) {
       const updated = await buildAndAdvance(t, advancing, 'knockout', null);
+      broadcastStageAdvance(id, {
+        stageIndex: updated.currentStageIndex,
+        stage: updated.stages[updated.currentStageIndex],
+        advancing,
+        matches: updated.matches,
+        standings: updated.standings,
+      }, updated);
       return NextResponse.json(updated);
     }
 
     // >4 players: admin must choose format
     stage.status = 'awaiting-next-format';
     await t.save();
+    broadcastStageAdvance(id, {
+      stageIndex: t.currentStageIndex,
+      stage,
+      status: 'awaiting-next-format',
+      advancing,
+      message: `${advancing.length} players advancing. Choose the next stage format.`,
+    }, t);
     return NextResponse.json({
       ...t.toObject(),
       awaitingFormatSelection: true,

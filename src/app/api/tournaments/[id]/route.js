@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
+import { broadcastPlayerRenamed } from '@/lib/events';
 
 // GET /api/tournaments/[id]
 export async function GET(req, { params }) {
@@ -103,6 +104,15 @@ export async function PATCH(req, { params }) {
     });
 
     await t.save();
+
+    broadcastPlayerRenamed(id, {
+      action: 'rename',
+      oldName: oldTrimmed,
+      newName: newTrimmed,
+      players: t.players,
+      disqualifiedPlayers: t.disqualifiedPlayers,
+    }, t);
+
     return NextResponse.json({ success: true, tournament: t });
   } catch (e) {
     console.error('Rename player error:', e);

@@ -24,3 +24,12 @@
 - Audited instruction files vs codebase: ratcheted 18 code facts in `AGENTS.md` into executable claim anchors verified by `check-doc-claims.js`.
 - Injection guard in `check-doc-claims.js` bans `;` across commands; avoid trailing semicolons inside grep patterns.
 
+## 2026-09-03
+- Complete UI/UX modernization with athletic "Pitch & Slate" theme: in Next.js 14 App Router, export `viewport` separately from `metadata`; apply `tabular-nums` for scoreboard alignment; wrap administrative mutations (player rename/disqualification) in collapsible panels to keep match center views focused.
+- Built production SSE streaming engine with process-wide EventEmitter pub-sub and ring-buffer reconnect replay; integrated live event broadcasting across all tournament mutation routes (scores, abandonments, stage advancements, roster updates, completions).
+- 2026-09-03 · SSE stream leaks on pre-aborted signals, multiline comments missing colons, and naive ring-buffer replay on future lastEventId · Return 499 on pre-abort, prefix each multiline comment line with colon, compare event IDs chronologically in getEventsSince, and broadcast match:score before tournament:complete.
+- 2026-09-03 · SSE pubsub listener exceptions crashed broadcaster & route handlers, missing useTournamentStream hook, and non-conforming event names · Wrapped subscriber notification in safeEmit with per-listener try/catch, created dedicated useTournamentStream client hook with backoff reconnect, and aligned event types to canonical spec with aliases.
+- 2026-09-03 · useTournamentStream omitted lastEventId replay & open handler, tiebreaks broadcast as player:renamed, and abort listeners lingered · Appended &lastEventId= on reconnect, wired onopen, added canonical tiebreak:resolved event, and detached abort listeners on cleanup.
+
+
+

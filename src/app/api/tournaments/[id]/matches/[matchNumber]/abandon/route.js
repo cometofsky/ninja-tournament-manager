@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 import { buildGroupStandings, getStageRoundSpan } from '@/lib/tournament';
+import { broadcastMatchAbandon } from '@/lib/events';
 
 export const maxDuration = 10;
 
@@ -55,6 +56,18 @@ export async function POST(req, { params }) {
     }
 
     await t.save();
+
+    broadcastMatchAbandon(id, {
+      matchNumber: match.matchNumber,
+      round: match.round,
+      player1: match.player1,
+      player2: match.player2,
+      status: 'abandoned',
+      stageType: match.stageType,
+      groupId: match.groupId,
+      standings: t.standings,
+    }, t);
+
     return NextResponse.json({ success: true, tournament: t });
   } catch (e) {
     console.error('Abandon match error:', e);

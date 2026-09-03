@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 import { buildGroupStandings, getStageRoundSpan } from '@/lib/tournament';
+import { broadcastMatchScore, broadcastTournamentComplete } from '@/lib/events';
 
 // POST /api/tournaments/[id]/matches/[matchNumber]/result
 export async function POST(req, { params }) {
@@ -75,6 +76,30 @@ export async function POST(req, { params }) {
     }
 
     await t.save();
+
+    broadcastMatchScore(id, {
+      matchNumber: match.matchNumber,
+      round: match.round,
+      player1: match.player1,
+      player2: match.player2,
+      player1Score: match.player1Score,
+      player2Score: match.player2Score,
+      winner: match.winner,
+      status: match.status,
+      stageType: match.stageType,
+      groupId: match.groupId,
+      standings: t.standings,
+    }, t);
+
+    if (t.status === 'completed' && t.champion) {
+      broadcastTournamentComplete(id, {
+        champion: t.champion,
+        completedAt: t.completedAt,
+        finalMatch: match,
+        standings: t.standings,
+      }, t);
+    }
+
     return NextResponse.json({ success: true, tournament: t });
   } catch (e) {
     console.error('Match result error:', e);

@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
 import { deriveAdvancingPlayers, buildAndAdvance } from '@/lib/tournament';
+import { broadcastStageAdvance } from '@/lib/events';
 
 // POST /api/tournaments/[id]/set-next-format
 export async function POST(req, { params }) {
@@ -40,6 +41,14 @@ export async function POST(req, { params }) {
     }
 
     const updated = await buildAndAdvance(t, advancing, nextFormat, numberOfGroups);
+    broadcastStageAdvance(id, {
+      stageIndex: updated.currentStageIndex,
+      stage: updated.stages[updated.currentStageIndex],
+      nextFormat,
+      advancing,
+      matches: updated.matches,
+      standings: updated.standings,
+    }, updated);
     return NextResponse.json(updated);
   } catch (e) {
     console.error('Set next format error:', e.message);

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
 import { requireAdmin } from '@/lib/auth';
+import { broadcastPlayerDisqualified } from '@/lib/events';
 
 export const maxDuration = 10;
 
@@ -51,6 +52,13 @@ export async function POST(req, { params }) {
 
     t.markModified('disqualifiedPlayers');
     await t.save();
+
+    broadcastPlayerDisqualified(id, {
+      action,
+      player: playerTrimmed,
+      disqualifiedPlayers: t.disqualifiedPlayers,
+    }, t);
+
     return NextResponse.json({ success: true, tournament: t });
   } catch (e) {
     console.error('Disqualify error:', e);
