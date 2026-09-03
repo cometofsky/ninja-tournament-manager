@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { UserPlus, AlertCircle, ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 export default function RegisterPage() {
@@ -41,48 +42,85 @@ export default function RegisterPage() {
   return (
     <div className="app-shell">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4">
-        <div className="max-w-md mx-auto py-12">
-          <h1 className="text-3xl font-bold mb-6 text-center theme-page-title">Create Admin Account</h1>
-          <form onSubmit={submit} className="theme-card space-y-4 p-6 rounded-[1.5rem]">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 flex items-center justify-center py-16">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create Admin</h1>
+            <p className="text-slate-500 text-sm mt-1">
+              Register a new administrative account to operate tournaments.
+            </p>
+          </div>
+
+          <form onSubmit={submit} className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-sm space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-1 text-[#314b24]">Email</label>
+              <label className="block text-sm font-semibold text-slate-800 mb-1.5">Email Address</label>
               <input
-                value={email} onChange={e => setEmail(e.target.value)}
-                type="email" required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                type="email"
+                required
                 className="theme-input"
-                placeholder="you@example.com"
+                placeholder="admin@tournament.org"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-1 text-[#314b24]">
-                Password <span className="text-[#8a8178] font-normal text-xs">(min. 8 characters)</span>
+              <label className="block text-sm font-semibold text-slate-800 mb-1.5">
+                Password <span className="text-slate-400 font-normal text-xs">(min. 8 characters)</span>
               </label>
               <input
-                value={password} onChange={e => setPassword(e.target.value)}
-                type="password" required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                type="password"
+                required
+                placeholder="••••••••"
                 className="theme-input"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium mb-1 text-[#314b24]">Confirm Password</label>
+              <label className="block text-sm font-semibold text-slate-800 mb-1.5">Confirm Password</label>
               <input
-                value={confirm} onChange={e => setConfirm(e.target.value)}
-                type="password" required
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                type="password"
+                required
+                placeholder="••••••••"
                 className="theme-input"
               />
             </div>
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+
+            {error && (
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{error}</span>
+              </div>
+            )}
+
             <button
+              type="submit"
               disabled={loading}
-              className="theme-primary-btn w-full"
+              className="theme-primary-btn w-full shadow-md py-3 text-sm"
             >
-              {loading ? 'Creating account...' : 'Register'}
+              {loading ? 'Creating account...' : (
+                <>
+                  <span>Complete Registration</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
-            <p className="text-sm text-center theme-page-subtle">
-              Already have an account?{' '}
-              <Link href="/login" className="theme-link">Login</Link>
-            </p>
+
+            <div className="pt-4 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-500">
+                Already have an admin account?{' '}
+                <Link href="/login" className="font-semibold text-emerald-700 hover:text-emerald-800">
+                  Sign in
+                </Link>
+              </p>
+            </div>
           </form>
         </div>
       </main>

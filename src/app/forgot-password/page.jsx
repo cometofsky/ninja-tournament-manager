@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail } from 'lucide-react';
+import { Mail, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 export default function ForgotPasswordPage() {
@@ -37,47 +37,76 @@ export default function ForgotPasswordPage() {
   return (
     <div className="app-shell">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4">
-        {submitted ? (
-          <div className="max-w-md mx-auto py-16 text-center">
-            <div className="theme-success-panel rounded-[1.5rem] p-8">
-              <Mail className="w-12 h-12 text-[#4F772D] mx-auto mb-3" />
-              <h2 className="text-xl font-bold text-[#35531f] mb-2">Check your email</h2>
-              <p className="text-[#35531f] text-sm">
-                If <strong>{email}</strong> is registered, a password reset link has been sent. It expires in 1 hour.
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 flex items-center justify-center py-16">
+        <div className="max-w-md w-full">
+          {submitted ? (
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-10 text-center shadow-sm">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Check Your Email</h1>
+              <p className="text-slate-600 text-sm leading-relaxed mb-6">
+                If an admin account is registered for <strong className="text-slate-900 font-semibold">{email}</strong>, a password reset link has been dispatched.
               </p>
-              <Link href="/login" className="theme-link mt-4 inline-block text-sm">
-                Back to Login
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-xs text-slate-500 mb-6">
+                The reset link will expire in 60 minutes for security purposes.
+              </div>
+              <Link href="/login" className="theme-primary-btn w-full shadow-sm">
+                <ArrowLeft className="w-4 h-4" /> Return to Login
               </Link>
             </div>
-          </div>
-        ) : (
-          <div className="max-w-md mx-auto py-12">
-            <h1 className="text-3xl font-bold mb-2 text-center theme-page-title">Forgot Password</h1>
-            <p className="theme-page-subtle text-sm text-center mb-6">Enter your email and we&apos;ll send a reset link.</p>
-            <form onSubmit={submit} className="theme-card space-y-4 p-6 rounded-[1.5rem]">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-[#314b24]">Email</label>
-                <input
-                  type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                  className="theme-input"
-                  placeholder="you@example.com"
-                />
+          ) : (
+            <div>
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Forgot Password</h1>
+                <p className="text-slate-500 text-sm mt-1">
+                  Enter your registered administrator email to receive reset instructions.
+                </p>
               </div>
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-              <button
-                disabled={loading}
-                className="theme-primary-btn w-full"
-              >
-                {loading ? 'Sending...' : 'Send Reset Link'}
-              </button>
-              <p className="text-sm text-center theme-page-subtle">
-                Remember it?{' '}
-                <Link href="/login" className="theme-link">Login</Link>
-              </p>
-            </form>
-          </div>
-        )}
+
+              <form onSubmit={submit} className="bg-white rounded-3xl border border-slate-200/80 p-8 shadow-sm space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-800 mb-1.5">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="theme-input"
+                    placeholder="admin@tournament.org"
+                  />
+                </div>
+
+                {error && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="theme-primary-btn w-full shadow-md py-3 text-sm"
+                >
+                  {loading ? 'Sending Instructions...' : 'Send Reset Link'}
+                </button>
+
+                <div className="pt-4 border-t border-slate-100 text-center">
+                  <p className="text-xs text-slate-500">
+                    Remember your credentials?{' '}
+                    <Link href="/login" className="font-semibold text-emerald-700 hover:text-emerald-800">
+                      Sign in
+                    </Link>
+                  </p>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
