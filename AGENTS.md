@@ -85,4 +85,21 @@ No AI/LLM code in this repo today. This is a forward design; follow the global 4
 - **Harness** — put the provider seam in a new `src/lib/ai.js` beside `mailer.js`/`auth.js`, mirroring the mailer's never-raise posture (return a structured failure, never throw into a route handler); it must be `async` and non-blocking. Consume it from a new `src/app/api/**/route.js` handler behind `requireAdmin`. Re-validate every model output against the enums above before any DB write.
 - **Loop** — single-shot structured generation is sufficient for setup and recaps. Any output that mutates tournament state (setup config, name renames) is high-stakes — it shifts standings/brackets — so gate it behind an explicit **admin approval step**: the model proposes, the admin confirms, then the existing write path applies it. No autonomous writes.
 
+## Knowledge graph (graphify)
+
+A whole-repo knowledge graph lives at `graphify-out/` — gitignored, local-only and regenerable
+(`graphify update .` rebuilds it from the AST in seconds, no model call). It is built by the
+Graphify Labs CLI (`graphify`, pipx package `graphifyy`); the matching agent skill is `/graphify`.
+Never set or ask for an API key for it: code is extracted structurally, and the optional semantic
+pass runs in the host session on its own login.
+<!-- claim: cmd=`grep -c 'graphify-out' .gitignore` expect=`1` -->
+
+- For a codebase question, run `graphify query "<question>"` first when `graphify-out/graph.json`
+  exists; `graphify path "<A>" "<B>"` for a relationship, `graphify explain "<concept>"` for one
+  concept. Each returns a scoped subgraph, far smaller than `GRAPH_REPORT.md` or raw grep output.
+- Read `graphify-out/GRAPH_REPORT.md` only for a broad architecture review.
+- After editing code, run `graphify update .` so the graph stays current.
+- If `graphify-out/` is missing, `graphify update .` builds the code graph; the `/graphify` skill
+  adds docs and images on top.
+
 <!-- repowiki: audited-at cded8118f1b324c2acab8565e5d61732e4a24fdd on 2026-08-30 -->
