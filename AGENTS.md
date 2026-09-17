@@ -63,6 +63,16 @@ Confirm each value against the cited source before using it; do not invent enum 
   <!-- claim: cmd=`grep 's1\.points -= 2' src/lib/tournament.js` expect=`s1.points -= 2; s2.points -= 2;` -->
   <!-- claim: cmd=`grep 'const advCount = 2' src/lib/tournament.js` expect=`const advCount = 2;` -->
 - **Players are NAME STRINGS, never ObjectId refs**: `players`, `player1`/`player2`, `winner`, `standings.player`, and `disqualifiedPlayers` are all stored as strings (`Tournament.js` L6-10, 25, 61, 78). This is why `renameHistory` and rename cascades exist (`Tournament.js` L36-41). Do not model players as a separate collection or a ref.
+- **`User` has `passwordHash`, not `password`, and no `name` field** (`src/models/User.js`): the
+  document is `email` / `passwordHash` / `role` / `resetToken` / `resetTokenExpiry` / `createdAt`.
+  Hashes on live data are 60-char bcrypt. Do not add a display-name field on a guess.
+  <!-- claim: cmd=`grep -c 'passwordHash: { type: String, required: true }' src/models/User.js` expect=`1` -->
+  <!-- claim: cmd=`grep -c 'name: {' src/models/User.js` expect=`0` -->
+- **The JWT secret is read lazily, on purpose** (`getSecret()` in `src/lib/auth.js`). A
+  module-scope `throw` for a missing `JWT_SECRET` breaks `next build`, because the build imports
+  the module without the runtime env. Keep the check inside the function, and keep it
+  production-only — the dev fallback secret is what lets the suite and `next dev` run unconfigured.
+  <!-- claim: cmd=`grep -c 'function getSecret()' src/lib/auth.js` expect=`1` -->
 - **`MONGODB_URI` config trap**: `src/lib/db.js` reads `process.env.MONGODB_URI` and throws if unset. For local dev, set `MONGODB_URI` directly. For the Docker/compose path, **do NOT set `MONGODB_URI`** — `docker-compose.yml` builds it from `MONGO_USER` / `MONGO_PASS` / `MONGO_DB`, and those only take effect on the first (empty-volume) Mongo init (see `.env.local.example`).
 - **Reusable auth/db/mail helpers — do not reinvent**: `signToken` / `verifyToken` / `authenticateRequest` / `requireAdmin` (`src/lib/auth.js`; `TOKEN_TTL = '7d'`, dev-only fallback secret when `JWT_SECRET` unset outside production), `connectDB` (`src/lib/db.js`), mailer (`src/lib/mailer.js`).
   <!-- claim: cmd=`grep 'export const TOKEN_TTL' src/lib/auth.js` expect=`export const TOKEN_TTL = '7d';` -->
