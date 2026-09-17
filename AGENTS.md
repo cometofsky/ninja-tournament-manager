@@ -1,5 +1,11 @@
 # tournament_manager_next
 
+## Project context — read before changing anything
+`CONTEXT.md` (glossary) → `docs/adr/INDEX.md` → the matching sections of `docs/product.md` /
+`docs/business.md`. All four are scaffolded but still **empty**, so they answer nothing today —
+a product choice this repo has not recorded is a question for the user, not a guess. How to use
+and write them is `~/.agents/AGENTS.md` → Project context; not restated here.
+
 ## Stack
 <!-- claim: cmd=`grep '"next":' package.json` expect=`"next": "^14.2.29",` -->
 <!-- claim: cmd=`grep '"react":' package.json` expect=`"react": "^18.3.1",` -->
@@ -68,48 +74,21 @@ Confirm each value against the cited source before using it; do not invent enum 
 - Build: `npm run build`  (`next build`)
 - Claims: `npm run check:claims`  (`node scripts/check-doc-claims.js`, repowiki claim anchor gate)
 
-A change is DONE only when the relevant commands pass and their output is shown. If a command can't be run, say so and mark the change UNVERIFIED.
+**What this gate cannot see.** `npm test` touches no database and no network — it exercises the
+pure logic in `src/lib/tournament.js` and the SSE helpers, nothing else. No test covers a route
+handler, a Mongoose write, an email, or a rendered page, and there is no typecheck to catch a
+renamed field. If your change alters what a user sees or what gets written, run `npm run dev`
+against a real `MONGODB_URI`, exercise the flow, and say what you saw — or mark it UNVERIFIED.
 
-## AI layer (planned)
-
-No AI/LLM code in this repo today. This is a forward design; follow the global 4-pillar standard (`~/.agents/ai-engineering.md`) when implementing — do not restate it here.
-
-**Candidate use-cases** (grounded in this app's real domain — tournaments, matches, standings, name-string players):
-- **Natural-language tournament setup** — admin types "8 players, round-robin then knockout the top 2" on `src/app/create/`; the model emits a validated config (`initialFormat`, player list, stage plan) instead of hand-filling the form. Value: removes the biggest setup friction.
-- **Match recaps / standings narratives** — turn a tournament's completed matches + `buildGroupStandings` output into a shareable plain-language summary or bracket commentary. Value: viewer engagement without an admin writing it.
-- **Player-name normalization assistant** — flag likely typo/duplicate variants of the same name-string player and propose a rename, feeding the existing rename-cascade path (`renameHistory`, `Tournament.js`). Value: fewer split standings from misspelled names.
-
-**Pillar plan (when built):**
-- **Prompt** — bind outputs to the *existing* Mongoose enums as the JSON schema: `initialFormat` ∈ {`round-robin`,`group`}, `Stage.type`, `Match.stageType`/`status` (source of truth: `src/models/Tournament.js`). Untrusted input enters at the NL setup box and at player-name strings — validate the parsed object against those enums before it touches a model.
-- **Context** — ground on a single tournament document (config + matches + `src/lib/tournament.js` standings) plus the rules prose in `README.md`. One tournament fits easily in context, so no vector store/RAG; keep the rules + schema in a cached system prompt and pass only the live tournament JSON per call.
-- **Harness** — put the provider seam in a new `src/lib/ai.js` beside `mailer.js`/`auth.js`, mirroring the mailer's never-raise posture (return a structured failure, never throw into a route handler); it must be `async` and non-blocking. Consume it from a new `src/app/api/**/route.js` handler behind `requireAdmin`. Re-validate every model output against the enums above before any DB write.
-- **Loop** — single-shot structured generation is sufficient for setup and recaps. Any output that mutates tournament state (setup config, name renames) is high-stakes — it shifts standings/brackets — so gate it behind an explicit **admin approval step**: the model proposes, the admin confirms, then the existing write path applies it. No autonomous writes.
+## AI layer
+No AI/LLM code exists here. The forward design (use-cases + 4-pillar plan) is
+`docs/ai-layer-plan.md`; the standard it follows is `~/.agents/ai-engineering.md`.
 
 ## Knowledge graph (graphify)
-
-A whole-repo knowledge graph lives at `graphify-out/` — gitignored, local-only and regenerable
-(`graphify update .` rebuilds it from the AST in seconds, no model call). It is built by the
-Graphify Labs CLI (`graphify`, pipx package `graphifyy`); the matching agent skill is `/graphify`.
-Never set or ask for an API key for it: code is extracted structurally, and the optional semantic
-pass runs in the host session on its own login.
+`graphify-out/` exists here and is gitignored and regenerable (`graphify update .`). Prefer
+`graphify query "<question>"` over grep for a codebase question, and re-run `graphify update .`
+after editing code. The rest — what it is, never committing it, never asking for an API key — is
+`~/.agents/AGENTS.md` → Global skills.
 <!-- claim: cmd=`grep -c 'graphify-out' .gitignore` expect=`1` -->
-
-- For a codebase question, run `graphify query "<question>"` first when `graphify-out/graph.json`
-  exists; `graphify path "<A>" "<B>"` for a relationship, `graphify explain "<concept>"` for one
-  concept. Each returns a scoped subgraph, far smaller than `GRAPH_REPORT.md` or raw grep output.
-- Read `graphify-out/GRAPH_REPORT.md` only for a broad architecture review.
-- After editing code, run `graphify update .` so the graph stays current.
-- If `graphify-out/` is missing, `graphify update .` builds the code graph; the `/graphify` skill
-  adds docs and images on top.
-
-## Project context
-Recorded product, business and technical decisions for this repo. **Read before any change:**
-`CONTEXT.md` (glossary) → `docs/adr/INDEX.md` → every ADR whose `area` matches what you touch →
-the matching sections of `docs/product.md` / `docs/business.md`.
-- A product or business choice the request leaves open and no document covers → **ask, don't
-  assume**; then draft a `status: proposed` ADR. Only a human sets `accepted`.
-- A request that conflicts with an accepted ADR → name the ADR first. Superseded ADRs are history.
-- Precedence: the user's current message > accepted ADR > product/business docs > anything else.
-- `docs/business.md` stays repo-safe: no prices, contract terms, client names or revenue.
 
 <!-- repowiki: audited-at cded8118f1b324c2acab8565e5d61732e4a24fdd on 2026-08-30 -->
