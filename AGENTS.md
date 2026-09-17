@@ -90,6 +90,33 @@ handler, a Mongoose write, an email, or a rendered page, and there is no typeche
 renamed field. If your change alters what a user sees or what gets written, run `npm run dev`
 against a real `MONGODB_URI`, exercise the flow, and say what you saw — or mark it UNVERIFIED.
 
+## Running system
+
+**Deploy is the user's call, and pushing is too** — the rule is `~/.agents/AGENTS.md` → DevOps.
+`scripts/deploy.sh` is a real deploy; never run it to "see it working", use `npm run dev`.
+
+Live at **https://tournaments.rafi.ninja** (and `tournament.rafi.ninja`, one LE cert, both SANs).
+MEASURED 2026-06-22; nothing has re-checked since, so re-verify before relying on it.
+- **Host `raafii@204.168.225.250`**, checkout `/srv/apps/tournament_manager`. A shared
+  multi-tenant VPS — luxotix, invoice, rafi_ninja, notebook_ninja and a shared Postgres live on
+  the same box. An action scoped to "this app" can take a neighbour down.
+- Edge is **one shared Traefik v3.7.5** at root-owned `/opt/traefik`: external network `traefik`,
+  entrypoint `websecure`, ACME resolver `le`, global HTTP→HTTPS redirect. This app publishes **no
+  host port** — it is reached through Traefik labels only, and needs `traefik.docker.network`
+  because it sits on two networks. Router base name `tournament` does not collide.
+- Mongo is **bundled and internal-only** (`mongod --auth`, named volume `mongo_data`); this app
+  does not touch the shared Postgres. `MONGO_USER`/`MONGO_PASS` apply on **first init only**, i.e.
+  an empty volume — changing them later does nothing.
+- Compose declares a top-level `name: ${APP_PREFIX:-tournament}` and pinned `container_name`s, so
+  the stack is isolated even from a bare `docker compose up`. Keep it that way.
+  <!-- claim: cmd=`grep -c '^name: ' docker-compose.yml` expect=`1` -->
+- Health route is `/api/health` → `{"ok":true}`; `scripts/deploy.sh` gates on it.
+  <!-- claim: cmd=`git ls-files 'src/app/api/health/route.js' | wc -l` expect=`1` -->
+- Known open item: SMTP is blank in the VPS `.env`, so password-reset email does not send there.
+
+Ops history that is not a rule (Atlas decommission, the Postgres consolidation on this box) is in
+the session memory notes, not here.
+
 ## AI layer
 No AI/LLM code exists here. The forward design (use-cases + 4-pillar plan) is
 `docs/ai-layer-plan.md`; the standard it follows is `~/.agents/ai-engineering.md`.
