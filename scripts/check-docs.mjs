@@ -6,7 +6,8 @@
 //  3. every other doc (root *.md, docs/**, specs/**) is reachable from AGENTS.md or README.md,
 //     so AI tools know it exists and when to read it;
 //  4. specs follow specs/<ID>/product.md + tech.md;
-//  5. local Markdown links + anchors resolve with exact filename case; code fences balance;
+//  5. local Markdown links + anchors resolve with exact filename case and never point at a
+//     gitignored path (which breaks in a clean clone); code fences balance;
 //  6. the ADR log (INDEX.md rows <-> files, frontmatter, headings);
 //  7. the TASKS.md ledger (statuses, owners, dated Done) and development-plan <-> ledger parity.
 // Exceptions: docs/.doc-exceptions, one `<glob> <reason>` per line; every one applied is printed.
@@ -37,9 +38,11 @@ const DUPLICATE = [
 const norm = s => s.toLowerCase().replace(/_/g, '-');
 
 // ---- file list: git (respects .gitignore) with a filesystem fallback
+let inGit = false; // gitignored-link check only applies when the file list came from git
 function listFiles() {
   try {
     const out = execFileSync('git', ['-C', root, 'ls-files', '-co', '--exclude-standard', '-z'], { encoding: 'utf8', maxBuffer: 1 << 28 });
+    inGit = true;
     return out.split('\0').filter(Boolean).filter(f => fs.existsSync(path.join(root, f)));
   } catch {
     const walk = dir => fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap(e =>
@@ -155,8 +158,11 @@ for (const [f, t] of text) {
     links++;
     const [name, frag] = ref.split('#');
     const target = name ? path.posix.normalize(path.posix.join(path.posix.dirname(f), decodeURIComponent(name))).replace(/\/$/, '') : f;
-    if (!fileSet.has(target) && !dirSet.has(target) && !existsExact(target)) {
+    const onDiskOnly = !fileSet.has(target) && !dirSet.has(target);
+    if (onDiskOnly && !existsExact(target)) {
       err(f, `missing link target or wrong filename case: ${ref}`);
+    } else if (onDiskOnly && inGit && !target.startsWith('..') && !BASICS.includes(target) && !target.split('/').some(seg => VENDORED.has(seg))) {
+      err(f, `links to a gitignored path (works here, broken in any clean clone) — link a tracked file or mention it as local-only text: ${ref}`);
     } else {
       found.add(target);
       if (frag && text.has(target) && !anchors(text.get(target)).has(decodeURIComponent(frag))) err(f, `missing anchor: ${ref}`);
