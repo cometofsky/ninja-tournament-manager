@@ -47,7 +47,7 @@ after any doc change; it must pass before reporting done.
 ### Repo-specific docs
 | Doc | Read when |
 | :--- | :--- |
-| [docs/archive/](docs/archive/) | Tracing why a past feature was built the way it was — superseded material, e.g. `ORIGINAL_REQUEST.md`, the 2026-09-03 orchestrator brief for the real-time SSE streaming engine (gitignored, local only) |
+| `docs/archive/` (local only) | Tracing why a past feature was built the way it was — superseded material, e.g. `ORIGINAL_REQUEST.md`, the 2026-09-03 orchestrator brief for the real-time SSE streaming engine (gitignored, local only) |
 
 ## Stack
 <!-- claim: cmd=`grep '"next":' package.json` expect=`"next": "^14.2.29",` -->
