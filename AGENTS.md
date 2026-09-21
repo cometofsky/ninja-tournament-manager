@@ -1,10 +1,53 @@
 # tournament_manager_next
 
-## Project context — read before changing anything
-`CONTEXT.md` (glossary) → `docs/adr/INDEX.md` → the matching sections of `docs/product.md` /
-`docs/business.md`. All four are scaffolded but still **empty**, so they answer nothing today —
-a product choice this repo has not recorded is a question for the user, not a guess. How to use
-and write them is `~/.agents/AGENTS.md` → Project context; not restated here.
+## Project context
+<!-- project-context:begin — managed by ~/.agents/skills/project-context (scaffold.sh refreshes it).
+     Edit the skill's templates/agents-section.md, not this block. Repo-specific rules go below the end marker. -->
+The same documentation layout is used in every repo, so any AI tool or person knows where to look.
+
+| Doc | Owns | Read when |
+| :--- | :--- | :--- |
+| `CONTEXT.md` | Domain glossary — terms to use, synonyms to avoid | Before any change; whenever naming something |
+| `docs/product.md` | Current product rules: users, flows, must / must not | Changing anything a user sees or does |
+| `docs/business.md` | Current business rules (repo-safe) | Touching plans, limits, billing, commitments, audience |
+| `docs/architecture.md` | Technical contracts: building blocks, data, runtime, deployment, cross-cutting (incl. AI layer) | Changing structure, data, integrations, deploy, security |
+| `docs/adr/INDEX.md` | Decision log; open every ADR whose `area` matches your change | Before any change; before "fixing" something that looks odd |
+| `specs/<ID>/product.md` + `tech.md` | One feature: testable behaviour rules + implementation plan | Building or changing that feature |
+| `docs/development-plan.md` | Sequencing, scope and acceptance of planned work | Starting planned work; asked "what's next" |
+| `TASKS.md` | Live task status and completion evidence — the only status record | Starting or finishing any task |
+| `lessons_learned.md` | What broke before and the fix | Before debugging; before repeating a risky operation |
+| Repo-specific docs (table below) | Everything else this repo keeps | When its "Read when" trigger matches |
+
+**Reading order before any change:** `CONTEXT.md` → `docs/adr/INDEX.md` (matching `area`) → the
+sections of product / business / architecture you touch → the feature's spec → repo-specific docs
+whose trigger matches. When the user says "there is a rule / a decision", look here first.
+
+**Keeping docs current — in the same change, never later:**
+- New or renamed domain term → `CONTEXT.md`.
+- User-visible behaviour changed → `docs/product.md`. Commercial rule → `docs/business.md`.
+- Stack, data model, integration, deploy or security contract changed → `docs/architecture.md`.
+- Hard-to-reverse, surprising or trade-off choice → new ADR (`status: proposed`) + `INDEX.md` row.
+  Only a human sets `accepted`; a change of mind supersedes, never edits, an accepted ADR.
+- Feature bigger than a fix → `specs/<ID>/product.md` + `tech.md` **before** code (copy
+  `specs/_template/`); update the spec when behaviour changes.
+- Planned work → `docs/development-plan.md` task + `TASKS.md` row; update the row when starting
+  (owner, date, files, verification) and when finishing (date, changed paths, checks, limits).
+- Operational procedure changed → its runbook. Error or correction → `lessons_learned.md`.
+- A stale or wrong doc noticed in passing → fix it in this change, or add a `TASKS.md` row.
+- A new doc → add it to the Repo-specific docs table with a "Read when" trigger.
+- A standing rule the user states → `docs/product.md` / `docs/business.md`, never only tool memory.
+
+**Rules:** a product or business gap no document covers → ask, don't assume. A request that
+conflicts with an accepted ADR → name the ADR first. Precedence: the user's current message >
+accepted ADR > product / business / architecture docs > anything else. `docs/business.md` stays
+repo-safe: no prices, contract terms, client names or revenue. Run `node scripts/check-docs.mjs`
+after any doc change; it must pass before reporting done.
+<!-- project-context:end -->
+
+### Repo-specific docs
+| Doc | Read when |
+| :--- | :--- |
+| [docs/archive/](docs/archive/) | Tracing why a past feature was built the way it was — superseded material, e.g. `ORIGINAL_REQUEST.md`, the 2026-09-03 orchestrator brief for the real-time SSE streaming engine (gitignored, local only) |
 
 ## Stack
 <!-- claim: cmd=`grep '"next":' package.json` expect=`"next": "^14.2.29",` -->
@@ -119,7 +162,9 @@ the session memory notes, not here.
 
 ## AI layer
 No AI/LLM code exists here. The forward design (use-cases + 4-pillar plan) is
-`docs/ai-layer-plan.md`; the standard it follows is `~/.agents/ai-engineering.md`.
+[docs/architecture.md → AI layer](docs/architecture.md#ai-layer) (scheduling:
+[docs/development-plan.md → AI layer](docs/development-plan.md#ai-layer-not-scheduled)); the standard it
+follows is `~/.agents/ai-engineering.md`.
 
 ## Knowledge graph (graphify)
 `graphify-out/` exists here and is gitignored and regenerable (`graphify update .`). Prefer

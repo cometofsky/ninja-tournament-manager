@@ -33,3 +33,4 @@
 
 
 
+2026-09-21 · docs/ai-layer-plan.md merged into docs/architecture.md (Cross-cutting → AI layer) + a scheduling note in docs/development-plan.md, file deleted, AGENTS.md `## AI layer` repointed; gitignored ORIGINAL_REQUEST.md moved to docs/archive/ and the folder listed · `node scripts/check-docs.mjs` PASS; check-preserved shows only the expected AGENTS.md pointer/Project-context losses
