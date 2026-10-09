@@ -16,32 +16,28 @@ The same documentation layout is used in every repo, so any AI tool or person kn
 | `docs/development-plan.md` | Sequencing, scope and acceptance of planned work | Starting planned work; asked "what's next" |
 | `TASKS.md` | Live task status and completion evidence — the only status record | Starting or finishing any task |
 | `lessons_learned.md` | What broke before and the fix | Before debugging; before repeating a risky operation |
+| `docs/wiki/` | Verified per-subsystem pages (repowiki), each stamped with the commit it was checked at | Orienting in an unfamiliar subsystem — narrative, never normative |
 | Repo-specific docs (table below) | Everything else this repo keeps | When its "Read when" trigger matches |
 
-**Reading order before any change:** `CONTEXT.md` → `docs/adr/INDEX.md` (matching `area`) → the
-sections of product / business / architecture you touch → the feature's spec → repo-specific docs
-whose trigger matches. When the user says "there is a rule / a decision", look here first.
+**Before any change** read `CONTEXT.md` → `docs/adr/INDEX.md` (matching `area`) → the product /
+business / architecture sections you touch → the feature's spec → repo-specific docs whose trigger
+matches. When the user says "there is a rule / a decision", look here first.
 
-**Keeping docs current — in the same change, never later:**
-- New or renamed domain term → `CONTEXT.md`.
-- User-visible behaviour changed → `docs/product.md`. Commercial rule → `docs/business.md`.
-- Stack, data model, integration, deploy or security contract changed → `docs/architecture.md`.
-- Hard-to-reverse, surprising or trade-off choice → new ADR (`status: proposed`) + `INDEX.md` row.
-  Only a human sets `accepted`; a change of mind supersedes, never edits, an accepted ADR.
-- Feature bigger than a fix → `specs/<ID>/product.md` + `tech.md` **before** code (copy
-  `specs/_template/`); update the spec when behaviour changes.
-- Planned work → `docs/development-plan.md` task + `TASKS.md` row; update the row when starting
-  (owner, date, files, verification) and when finishing (date, changed paths, checks, limits).
-- Operational procedure changed → its runbook. Error or correction → `lessons_learned.md`.
-- A stale or wrong doc noticed in passing → fix it in this change, or add a `TASKS.md` row.
-- A new doc → add it to the Repo-specific docs table with a "Read when" trigger.
-- A standing rule the user states → `docs/product.md` / `docs/business.md`, never only tool memory.
+**Keep docs current in the same change, never later:** new or renamed term → `CONTEXT.md`;
+user-visible behaviour → `docs/product.md`; commercial rule → `docs/business.md`; stack, data,
+integration, deploy or security contract → `docs/architecture.md`; hard-to-reverse or trade-off
+choice → ADR (`status: proposed`) + `INDEX.md` row; feature bigger than a fix → `specs/<ID>/product.md`
++ `tech.md` **before** code (copy `specs/_template/`); planned work → `docs/development-plan.md` task +
+`TASKS.md` row, updated on start (owner, date, files) and finish (changed paths, checks, limits); procedure → its runbook; error or correction →
+`lessons_learned.md`; stale doc seen in passing → fix it or add a `TASKS.md` row; new doc → a
+Repo-specific docs row; a standing rule the user states → `docs/product.md` / `docs/business.md`,
+never only tool memory.
 
-**Rules:** a product or business gap no document covers → ask, don't assume. A request that
-conflicts with an accepted ADR → name the ADR first. Precedence: the user's current message >
-accepted ADR > product / business / architecture docs > anything else. `docs/business.md` stays
-repo-safe: no prices, contract terms, client names or revenue. Run `node scripts/check-docs.mjs`
-after any doc change; it must pass before reporting done.
+**Rules:** an uncovered product/business gap → ask. A conflict with an accepted ADR → name it first;
+only a human sets `accepted`, and a change of mind supersedes, never edits. Precedence: the user's
+current message > accepted ADR > product / business / architecture docs > anything else.
+`docs/business.md` stays repo-safe. Run `node scripts/check-docs.mjs` once per task, after the last
+doc edit; it must pass before reporting done.
 <!-- project-context:end -->
 
 ### Repo-specific docs
