@@ -24,7 +24,7 @@ const err = (file, msg) => errors.push([file, msg]);
 const VENDORED = new Set(['Pods', 'Carthage', 'vendor', 'node_modules', 'third_party', 'third-party', 'bower_components',
   '.dart_tool', 'build', 'dist', 'target', 'bundled', 'graphify-out', 'coverage', 'venv', '.venv']);
 const BASICS = ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'README.md', 'CONTEXT.md', 'TASKS.md', 'lessons_learned.md',
-  'docs/product.md', 'docs/business.md', 'docs/architecture.md', 'docs/development-plan.md', 'docs/adr/INDEX.md'];
+  'docs/product.md', 'docs/business.md', 'docs/architecture.md', 'docs/development-plan.md', 'docs/adr/INDEX.md', 'docs/wiki/README.md'];
 // Files every reader knows by convention; they need no listing to be discoverable.
 const KNOWN = /^(LICEN[CS]E[^/]*|CHANGELOG\.md|CONTRIBUTING\.md|CODE_OF_CONDUCT\.md|SECURITY\.md|SUPPORT\.md|README\.[\w-]+\.md|HANDOFF\.md|lessons_learned\.archive\.md|\.codereview\.md)$/;
 // Names that duplicate a basic's job when found at the root or top level of docs/.
@@ -115,14 +115,20 @@ for (const f of allFiles.filter(f => f.startsWith('specs/') && f.endsWith('.md')
   const parts = f.split('/');
   if (parts[1] === '_template') continue;
   if (parts.length !== 3 || !['product.md', 'tech.md'].includes(parts[2])) err(f, 'specs hold only specs/<ID>/product.md and specs/<ID>/tech.md');
+  else {
+    const pair = `specs/${parts[1]}/${parts[2] === 'product.md' ? 'tech.md' : 'product.md'}`;
+    if (!fileSet.has(pair)) err(f, `spec is missing its pair: ${pair}`);
+  }
 }
 
 // ---- 5. links, anchors, fences (+ collect references for reachability)
-const stripCode = t => t.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, '').replace(/`[^`\n]*`/g, '');
+const stripFences = t => t.replace(/^(```|~~~)[^\n]*\n[\s\S]*?^\1[^\n]*$/gm, '');
+const stripCode = t => stripFences(t).replace(/`[^`\n]*`/g, '');
+// GitHub slugs keep inline-code text (only the backticks go), so headings strip fences, not inline code.
 const slug = t => t.trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/\s/g, '-');
 function anchors(t) {
   const out = new Set(), counts = new Map();
-  for (const m of stripCode(t).matchAll(/^#{1,6}\s+(.+?)\s*#*\s*$/gm)) {
+  for (const m of stripFences(t).matchAll(/^#{1,6}\s+(.+?)\s*#*\s*$/gm)) {
     const base = slug(m[1]), n = counts.get(base) ?? 0;
     out.add(n ? `${base}-${n}` : base); counts.set(base, n + 1);
   }
@@ -141,9 +147,11 @@ function existsExact(target) {
   }
   return true;
 }
+// A malformed %-escape must not abort the whole run; the raw text then fails to resolve and is reported.
+const decode = s => { try { return decodeURIComponent(s); } catch { return s; } };
 const refs = new Map(); // file -> Set of repo-relative paths it references (files or dirs)
 const resolveRef = (from, p) => {
-  const clean = decodeURIComponent(p.split('#')[0]).replace(/\/$/, '');
+  const clean = decode(p.split('#')[0]).replace(/\/$/, '');
   if (!clean) return null;
   const cands = [path.posix.normalize(path.posix.join(path.posix.dirname(from), clean)), path.posix.normalize(clean.replace(/^\.\//, ''))];
   return cands.find(c => fileSet.has(c) || dirSet.has(c)) ?? null;
@@ -157,7 +165,7 @@ for (const [f, t] of text) {
     if (/^[a-z][a-z0-9+.-]*:/i.test(ref)) continue;
     links++;
     const [name, frag] = ref.split('#');
-    const target = name ? path.posix.normalize(path.posix.join(path.posix.dirname(f), decodeURIComponent(name))).replace(/\/$/, '') : f;
+    const target = name ? path.posix.normalize(path.posix.join(path.posix.dirname(f), decode(name))).replace(/\/$/, '') : f;
     const onDiskOnly = !fileSet.has(target) && !dirSet.has(target);
     if (onDiskOnly && !existsExact(target)) {
       err(f, `missing link target or wrong filename case: ${ref}`);
@@ -165,7 +173,7 @@ for (const [f, t] of text) {
       err(f, `links to a gitignored path (works here, broken in any clean clone) — link a tracked file or mention it as local-only text: ${ref}`);
     } else {
       found.add(target);
-      if (frag && text.has(target) && !anchors(text.get(target)).has(decodeURIComponent(frag))) err(f, `missing anchor: ${ref}`);
+      if (frag && text.has(target) && !anchors(text.get(target)).has(decode(frag))) err(f, `missing anchor: ${ref}`);
     }
   }
   // Plain path mentions (`docs/runbooks/deploy.md`, docs/wiki/) also count as references.
@@ -201,13 +209,13 @@ const adrFiles = allFiles.filter(f => /^docs\/adr\/\d{4}-.+\.md$/.test(f)).sort(
 if (fileSet.has('docs/adr/INDEX.md')) {
   const rows = new Map();
   for (const m of read('docs/adr/INDEX.md').matchAll(/^\|\s*\[(\d{4})\]\(([^)]+)\)\s*\|(.*)\|\s*$/gm)) rows.set(`docs/adr/${m[2]}`, m[3].split('|').map(c => c.trim()));
-  const statusOk = s => /^(proposed|accepted|deprecated|superseded by ADR-\d{4}(, ADR-\d{4})*)$/.test(s);
+  const statusOk = s => /^(proposed|accepted|rejected|deprecated|superseded by ADR-\d{4}(, ADR-\d{4})*)$/.test(s);
   for (const f of adrFiles) {
     const t = read(f), n = path.posix.basename(f).slice(0, 4);
     const fm = t.match(/^---\n([\s\S]*?)\n---\n/);
     if (!fm) { err(f, 'missing YAML frontmatter'); continue; }
     const meta = Object.fromEntries(fm[1].split('\n').map(l => l.match(/^([\w-]+):\s*(.*?)\s*(?:#.*)?$/)).filter(Boolean).map(m => [m[1], m[2]]));
-    if (!statusOk(meta.status ?? '')) err(f, `invalid status "${meta.status ?? ''}" (proposed | accepted | deprecated | superseded by ADR-NNNN)`);
+    if (!statusOk(meta.status ?? '')) err(f, `invalid status "${meta.status ?? ''}" (proposed | accepted | rejected | deprecated | superseded by ADR-NNNN)`);
     if (!['technical', 'product', 'business'].includes(meta.type)) err(f, 'type must be technical | product | business');
     if (!meta.area) err(f, 'area is empty');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(meta.date ?? '')) err(f, 'date must be YYYY-MM-DD');
@@ -223,7 +231,8 @@ if (fileSet.has('docs/adr/INDEX.md')) {
 
 // ---- 7. ledger and plan
 const ledger = read('TASKS.md'), plan = read('docs/development-plan.md');
-const lrows = [...stripCode(ledger).matchAll(/^\| ([A-Z][A-Z0-9]*-\d+) \| (.+)$/gm)];
+// IDs are padded when a formatter aligns the table column (e.g. RM-01 next to REV-001).
+const lrows = [...stripCode(ledger).matchAll(/^\| ([A-Z][A-Z0-9]*-\d+) +\| (.+)$/gm)];
 const ledgerIds = lrows.map(m => m[1]);
 const planIds = [...stripCode(plan).matchAll(/^- \*\*(P\d+-\d+) —/gm)].map(m => m[1]);
 const statuses = new Set(['Planned', 'In progress', 'Blocked', 'In review', 'Done']);
@@ -237,13 +246,11 @@ for (const r of lrows) {
   if (c[1] !== 'Planned' && (!c[2] || c[2] === 'Unassigned')) err('TASKS.md', `active/completed task needs an owner: ${r[1]}`);
   if (c[1] === 'Done' && !/\d{4}-\d{2}-\d{2}/.test(c.at(-2) ?? '')) err('TASKS.md', `Done task needs dated evidence: ${r[1]}`);
 }
-if (planIds.length) {
-  for (const id of planIds) {
-    if (!ledgerIds.includes(id)) err('TASKS.md', `plan task missing from ledger: ${id}`);
-    if (!plan.includes(`<a id="${id.toLowerCase()}"></a>`)) err('docs/development-plan.md', `missing task anchor: ${id}`);
-  }
-  for (const id of ledgerIds.filter(id => /^P\d+-/.test(id))) if (!planIds.includes(id)) err('TASKS.md', `ledger task missing from plan: ${id}`);
+for (const id of planIds) {
+  if (!ledgerIds.includes(id)) err('TASKS.md', `plan task missing from ledger: ${id}`);
+  if (!plan.includes(`<a id="${id.toLowerCase()}"></a>`)) err('docs/development-plan.md', `missing task anchor: ${id}`);
 }
+for (const id of ledgerIds.filter(id => /^P\d+-/.test(id))) if (!planIds.includes(id)) err('TASKS.md', `ledger task missing from plan: ${id}`);
 if (/^\s*- \[[ xX]\]/m.test(stripCode(plan))) err('docs/development-plan.md', 'contains status checkboxes; status lives only in TASKS.md');
 
 // ---- report
