@@ -19,9 +19,10 @@ The same documentation layout is used in every repo, so any AI tool or person kn
 | `docs/wiki/` | Verified per-subsystem pages (repowiki), each stamped with the commit it was checked at | Orienting in an unfamiliar subsystem — narrative, never normative |
 | Repo-specific docs (table below) | Everything else this repo keeps | When its "Read when" trigger matches |
 
-**Before any change** read `CONTEXT.md` → `docs/adr/INDEX.md` (matching `area`) → the product /
-business / architecture sections you touch → the feature's spec → repo-specific docs whose trigger
-matches. When the user says "there is a rule / a decision", look here first.
+**Reading order and the rules for using these docs** — ask on an uncovered product/business gap, ADR
+status and supersession, precedence, a repo-safe `docs/business.md`, `node scripts/check-docs.mjs` once per
+task — are in `~/.agents/AGENTS.md` → Project context. When the user says "there is a rule / a decision",
+look here first.
 
 **Keep docs current in the same change, never later:** new or renamed term → `CONTEXT.md`;
 user-visible behaviour → `docs/product.md`; commercial rule → `docs/business.md`; stack, data,
@@ -32,12 +33,6 @@ choice → ADR (`status: proposed`) + `INDEX.md` row; feature bigger than a fix 
 `lessons_learned.md`; stale doc seen in passing → fix it or add a `TASKS.md` row; new doc → a
 Repo-specific docs row; a standing rule the user states → `docs/product.md` / `docs/business.md`,
 never only tool memory.
-
-**Rules:** an uncovered product/business gap → ask. A conflict with an accepted ADR → name it first;
-only a human sets `accepted`, and a change of mind supersedes, never edits. Precedence: the user's
-current message > accepted ADR > product / business / architecture docs > anything else.
-`docs/business.md` stays repo-safe. Run `node scripts/check-docs.mjs` once per task, after the last
-doc edit; it must pass before reporting done.
 <!-- project-context:end -->
 
 ### Repo-specific docs
