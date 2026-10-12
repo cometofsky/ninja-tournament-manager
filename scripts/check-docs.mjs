@@ -24,14 +24,14 @@ const err = (file, msg) => errors.push([file, msg]);
 const VENDORED = new Set(['Pods', 'Carthage', 'vendor', 'node_modules', 'third_party', 'third-party', 'bower_components',
   '.dart_tool', 'build', 'dist', 'target', 'bundled', 'graphify-out', 'coverage', 'venv', '.venv']);
 const BASICS = ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'README.md', 'CONTEXT.md', 'TASKS.md', 'lessons_learned.md',
-  'docs/product.md', 'docs/business.md', 'docs/architecture.md', 'docs/development-plan.md', 'docs/adr/INDEX.md', 'docs/wiki/README.md'];
+  'PRODUCT.md', 'docs/business.md', 'docs/architecture.md', 'docs/development-plan.md', 'docs/adr/INDEX.md', 'docs/wiki/README.md'];
 // Files every reader knows by convention; they need no listing to be discoverable.
 const KNOWN = /^(LICEN[CS]E[^/]*|CHANGELOG\.md|CONTRIBUTING\.md|CODE_OF_CONDUCT\.md|SECURITY\.md|SUPPORT\.md|README\.[\w-]+\.md|HANDOFF\.md|lessons_learned\.archive\.md|\.codereview\.md)$/;
 // Names that duplicate a basic's job when found at the root or top level of docs/.
 const DUPLICATE = [
   [/^(project[-_ ]?context|llms?|architecture[-_ ].+|phase[-_ ]?\d+[-_ ]architecture|invariants|ai[-_ ]layer([-_ ]plan)?)\.md$/i, 'docs/architecture.md (design) + docs/development-plan.md (pending work)'],
   [/^(roadmap([-_ ].*)?|plans?|todo|roadmap[-_ ]status|development[-_ ]plan[-_ ].+)\.md$/i, 'docs/development-plan.md + TASKS.md'],
-  [/^(features?|product[-_ ].+)\.md$/i, 'docs/product.md'],
+  [/^(features?|product([-_ ].+)?)\.md$/i, 'PRODUCT.md'],
   [/^(business[-_ ].+|business[-_ ]model)\.md$/i, 'docs/business.md'],
   [/^(glossary|terms)\.md$/i, 'CONTEXT.md'],
 ];

@@ -2,7 +2,7 @@
 
 One file per decision: `docs/adr/NNNN-short-slug.md`, numbered sequentially (highest + 1).
 Never edit an accepted ADR: write a new one that supersedes it, set the old one's status to
-`superseded by ADR-NNNN`, and update `docs/product.md` / `docs/business.md` in the same commit.
+`superseded by ADR-NNNN`, and update `PRODUCT.md` / `docs/business.md` in the same commit.
 Add one row below per ADR.
 
 Write one only when the choice is hard to reverse, surprising without context, or a real

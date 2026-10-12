@@ -8,7 +8,7 @@ The same documentation layout is used in every repo, so any AI tool or person kn
 | Doc | Owns | Read when |
 | :--- | :--- | :--- |
 | `CONTEXT.md` | Domain glossary — terms to use, synonyms to avoid | Before any change; whenever naming something |
-| `docs/product.md` | Current product rules: users, flows, must / must not | Changing anything a user sees or does |
+| `PRODUCT.md` | Current product rules: users, flows, must / must not | Changing anything a user sees or does |
 | `docs/business.md` | Current business rules (repo-safe) | Touching plans, limits, billing, commitments, audience |
 | `docs/architecture.md` | Technical contracts: building blocks, data, runtime, deployment, cross-cutting (incl. AI layer) | Changing structure, data, integrations, deploy, security |
 | `docs/adr/INDEX.md` | Decision log; open every ADR whose `area` matches your change | Before any change; before "fixing" something that looks odd |
@@ -25,13 +25,13 @@ task — are in `~/.agents/AGENTS.md` → Project context. When the user says "t
 look here first.
 
 **Keep docs current in the same change, never later:** new or renamed term → `CONTEXT.md`;
-user-visible behaviour → `docs/product.md`; commercial rule → `docs/business.md`; stack, data,
+user-visible behaviour → `PRODUCT.md`; commercial rule → `docs/business.md`; stack, data,
 integration, deploy or security contract → `docs/architecture.md`; hard-to-reverse or trade-off
 choice → ADR (`status: proposed`) + `INDEX.md` row; feature bigger than a fix → `specs/<ID>/product.md`
 + `tech.md` **before** code (copy `specs/_template/`); planned work → `docs/development-plan.md` task +
 `TASKS.md` row, updated on start (owner, date, files) and finish (changed paths, checks, limits); procedure → its runbook; error or correction →
 `lessons_learned.md`; stale doc seen in passing → fix it or add a `TASKS.md` row; new doc → a
-Repo-specific docs row; a standing rule the user states → `docs/product.md` / `docs/business.md`,
+Repo-specific docs row; a standing rule the user states → `PRODUCT.md` / `docs/business.md`,
 never only tool memory.
 <!-- project-context:end -->
 
