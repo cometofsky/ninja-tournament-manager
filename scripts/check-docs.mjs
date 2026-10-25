@@ -5,7 +5,8 @@
 //  2. CLAUDE.md / GEMINI.md import AGENTS.md, and AGENTS.md carries the managed project-context block;
 //  3. every other doc (root *.md, docs/**, specs/**) is reachable from AGENTS.md or README.md,
 //     so AI tools know it exists and when to read it;
-//  4. specs follow specs/<ID>/product.md + tech.md;
+//  4. specs follow specs/<ID>/product.md + tech.md, and (once tech.md has the `| Behaviour | Check |`
+//     table) every numbered behaviour maps to a test file that exists, a manual step or human judgement;
 //  5. local Markdown links + anchors resolve with exact filename case and never point at a
 //     gitignored path (which breaks in a clean clone); code fences balance;
 //  6. the ADR log (INDEX.md rows <-> files, frontmatter, headings);
@@ -119,6 +120,49 @@ for (const f of allFiles.filter(f => f.startsWith('specs/') && f.endsWith('.md')
     const pair = `specs/${parts[1]}/${parts[2] === 'product.md' ? 'tech.md' : 'product.md'}`;
     if (!fileSet.has(pair)) err(f, `spec is missing its pair: ${pair}`);
   }
+}
+
+// ---- 4b. every numbered Behaviour in product.md has a check in tech.md's `| Behaviour | Check |`
+// table: a test path that exists (`path` or `path::name`), `manual: <steps>` or `human-judgement`.
+// Specs written before the table existed are skipped and counted, never failed.
+const specIds = [...new Set(allFiles.filter(f => /^specs\/[^/]+\/product\.md$/.test(f)).map(f => f.split('/')[1]))]
+  .filter(id => id !== '_template' && fileSet.has(`specs/${id}/tech.md`));
+const unmapped = [];
+for (const id of specIds) {
+  const techPath = `specs/${id}/tech.md`;
+  const tech = fs.readFileSync(path.join(root, techPath), 'utf8');
+  if (!/^\|\s*Behaviour\s*\|\s*Check\s*\|/mi.test(tech)) { unmapped.push(id); continue; }
+  const lines = fs.readFileSync(path.join(root, `specs/${id}/product.md`), 'utf8').split('\n');
+  const start = lines.findIndex(l => /^## Behaviour\b/.test(l));
+  const behaviours = new Set();
+  for (const l of start < 0 ? [] : lines.slice(start + 1)) {
+    if (/^## /.test(l)) break;
+    const m = l.match(/^(\d+)\.\s+\S/);
+    if (m) behaviours.add(m[1]);
+  }
+  const rows = new Map(tech.split('\n').map(l => l.match(/^\|\s*(\d+)\s*\|\s*(.*?)\s*\|\s*$/)).filter(Boolean).map(m => [m[1], m[2]]));
+  for (const n of behaviours) {
+    if (!rows.has(n)) { err(techPath, `behaviour ${n} in product.md has no row in the Behaviour | Check table`); continue; }
+    const check = rows.get(n).replace(/`/g, '').trim();
+    if (!check) err(techPath, `behaviour ${n} has an empty check`);
+    else if (!/^(manual:|human-judgement)/i.test(check)) {
+      const p = check.split('::')[0].trim();
+      if (!fileSet.has(p) && !fs.existsSync(path.join(root, p))) err(techPath, `behaviour ${n} checks ${p}, which does not exist`);
+    }
+  }
+  for (const n of rows.keys()) if (!behaviours.has(n)) err(techPath, `row for behaviour ${n}, which product.md does not number`);
+}
+if (unmapped.length) console.log(`note: ${unmapped.length} spec(s) have no Behaviour | Check table yet (skipped): ${unmapped.slice(0, 5).join(', ')}${unmapped.length > 5 ? ', …' : ''}`);
+// Heuristic, never a failure: recent feature commits that touch several code files and name no spec.
+if (inGit && specIds.length) {
+  try {
+    const log = execFileSync('git', ['-C', root, 'log', '--no-merges', '--since=30.days', '--format=%H%x1f%s %b%x1e'], { encoding: 'utf8' });
+    const bare = log.split('\x1e').map(r => r.trim().split('\x1f')).filter(r => r.length === 2 && /^feat[(!:]/.test(r[1]))
+      .filter(([, msg]) => !specIds.some(id => msg.includes(id)))
+      .filter(([h]) => execFileSync('git', ['-C', root, 'show', '--name-only', '--format=', h], { encoding: 'utf8' })
+        .split('\n').filter(f => f && !/\.(md|mdx|txt)$/i.test(f)).length > 3);
+    if (bare.length) console.log(`note: ${bare.length} feat commit(s) in the last 30 days touch >3 code files and name no spec ID (heuristic — a small feature needs none): ${bare.slice(0, 5).map(([h]) => h.slice(0, 8)).join(', ')}`);
+  } catch { /* no history to read: the note is optional */ }
 }
 
 // ---- 5. links, anchors, fences (+ collect references for reachability)

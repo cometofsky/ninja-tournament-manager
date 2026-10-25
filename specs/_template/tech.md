@@ -9,6 +9,11 @@
 <!-- Modules touched, new types / APIs / state, data flow, trade-offs. Link ADRs for hard-to-reverse choices. -->
 
 ## Testing and validation
-<!-- How each numbered behaviour in product.md is verified: the test, the check, or the manual step. -->
+<!-- One row per numbered behaviour in product.md. Check = the test file that proves it (`path` or
+     `path::test name`, written before the code), `manual: <steps>`, or `human-judgement`.
+     scripts/check-docs.mjs fails a behaviour with no row and a test path that does not exist. -->
+| Behaviour | Check |
+| --- | --- |
+| 1 | |
 
 ## Risks and follow-ups
