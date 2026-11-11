@@ -69,3 +69,14 @@ export function requireAdmin(req) {
   }
   return { user: result.user };
 }
+
+/**
+ * True when the authenticated user created this tournament. Tournaments with no
+ * recorded creator belong to nobody, so this returns false for them.
+ * @param {{ createdBy?: unknown }} tournament
+ * @param {{ sub?: unknown }} user decoded JWT payload
+ */
+export function isTournamentCreator(tournament, user) {
+  if (!tournament?.createdBy || !user?.sub) return false;
+  return String(tournament.createdBy) === String(user.sub);
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Calendar, Trophy, Users, Plus, Search, CheckCircle2, Clock, Swords, ChevronRight } from 'lucide-react';
+import { Calendar, Trophy, Users, Plus, Search, CheckCircle2, Clock, Swords, ChevronRight, Archive } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { getStoredAdminToken } from '@/lib/clientAuth';
 
@@ -39,22 +39,26 @@ export default function HomePage() {
     }
   }
 
+  const activeTournaments = useMemo(() => tournaments.filter(t => !t.archived), [tournaments]);
+  const archivedCount = tournaments.length - activeTournaments.length;
+
   const stats = useMemo(() => {
-    const total = tournaments.length;
-    const inProgress = tournaments.filter(t => t.status === 'in-progress').length;
-    const completed = tournaments.filter(t => t.status === 'completed').length;
-    const totalPlayers = tournaments.reduce((acc, t) => acc + (t.players?.length || 0), 0);
+    const total = activeTournaments.length;
+    const inProgress = activeTournaments.filter(t => t.status === 'in-progress').length;
+    const completed = activeTournaments.filter(t => t.status === 'completed').length;
+    const totalPlayers = activeTournaments.reduce((acc, t) => acc + (t.players?.length || 0), 0);
     return { total, inProgress, completed, totalPlayers };
-  }, [tournaments]);
+  }, [activeTournaments]);
 
   const filteredTournaments = useMemo(() => {
-    return tournaments.filter(t => {
+    const pool = statusFilter === 'archived' ? tournaments.filter(t => t.archived) : activeTournaments;
+    return pool.filter(t => {
       const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
       const matchesStatus =
-        statusFilter === 'all' ? true : t.status === statusFilter;
+        statusFilter === 'all' || statusFilter === 'archived' ? true : t.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [tournaments, searchQuery, statusFilter]);
+  }, [tournaments, activeTournaments, searchQuery, statusFilter]);
 
   return (
     <div className="app-shell">
@@ -146,9 +150,10 @@ export default function HomePage() {
 
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             {[
-              { id: 'all', label: 'All', count: tournaments.length },
+              { id: 'all', label: 'All', count: stats.total },
               { id: 'in-progress', label: 'Active', count: stats.inProgress },
               { id: 'completed', label: 'Completed', count: stats.completed },
+              { id: 'archived', label: 'Archived', count: archivedCount },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -258,6 +263,12 @@ export default function HomePage() {
                       {t.status === 'setup' && (
                         <span className="inline-flex items-center text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                           Setup
+                        </span>
+                      )}
+                      {t.archived && (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                          <Archive className="w-3.5 h-3.5 text-slate-500" />
+                          Archived
                         </span>
                       )}
                     </div>

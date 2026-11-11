@@ -13,7 +13,7 @@ export async function GET() {
     await connectDB();
     const list = await Tournament.find()
       .sort({ createdAt: -1 })
-      .select('name players status initialFormat createdAt champion stages currentStageIndex');
+      .select('name players status initialFormat createdAt champion stages currentStageIndex archived');
     return NextResponse.json(list);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });

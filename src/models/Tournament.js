@@ -76,6 +76,9 @@ const tournamentSchema = new mongoose.Schema({
     selected: [String],
   }],
   disqualifiedPlayers: [{ type: String }],
+  // Archived tournaments are hidden from the dashboard's default lists; only the creator can toggle it.
+  archived: { type: Boolean, default: false },
+  archivedAt: { type: Date, default: null },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now },
   completedAt: { type: Date, default: null },

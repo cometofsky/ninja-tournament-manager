@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import Tournament from '@/models/Tournament';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, isTournamentCreator } from '@/lib/auth';
 import { broadcastPlayerRenamed } from '@/lib/events';
 
 // GET /api/tournaments/[id]
@@ -18,6 +18,30 @@ export async function GET(req, { params }) {
     return NextResponse.json(t);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+  }
+}
+
+// DELETE /api/tournaments/[id] — permanently delete (creator only)
+export async function DELETE(req, { params }) {
+  const auth = requireAdmin(req);
+  if (auth.response) return auth.response;
+
+  try {
+    const { id } = params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid ID' }, { status: 400 });
+    }
+    await connectDB();
+    const t = await Tournament.findById(id).select('createdBy');
+    if (!t) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!isTournamentCreator(t, auth.user)) {
+      return NextResponse.json({ error: 'Only the tournament creator can delete it' }, { status: 403 });
+    }
+    await Tournament.deleteOne({ _id: id, createdBy: t.createdBy });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    console.error('Delete tournament error:', e);
+    return NextResponse.json({ error: 'Failed to delete tournament' }, { status: 500 });
   }
 }
 

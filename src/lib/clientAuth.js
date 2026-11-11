@@ -42,6 +42,15 @@ export function getStoredAdminToken() {
   return token;
 }
 
+// The user id (`sub`) of the stored, unexpired token — used only to decide which
+// controls to show; the server re-checks ownership on every request.
+export function getStoredAdminUserId() {
+  const token = getStoredAdminToken();
+  if (!token) return null;
+  const sub = parseJwtPayload(token)?.sub;
+  return sub ? String(sub) : null;
+}
+
 export function getAdminAuthHeader() {
   const token = getStoredAdminToken();
   if (!token) return null;

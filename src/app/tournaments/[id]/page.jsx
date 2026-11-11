@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Trophy, Medal, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Pencil, Ban, UserX, ArrowLeft, Search, ShieldCheck, Check, Clock, Swords, Sparkles } from 'lucide-react';
+import { Trophy, Medal, ChevronRight, ChevronDown, AlertTriangle, CheckCircle, Pencil, Ban, UserX, ArrowLeft, Search, ShieldCheck, Check, Clock, Swords, Sparkles, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { clearAdminToken, getStoredAdminToken } from '@/lib/clientAuth';
+import { clearAdminToken, getStoredAdminToken, getStoredAdminUserId } from '@/lib/clientAuth';
 import useTournamentStream from '@/hooks/useTournamentStream';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -553,6 +553,10 @@ export default function TournamentPage({ params }) {
   const [advanceError, setAdvanceError] = useState('');
   const [pendingTiebreaks, setPendingTiebreaks] = useState([]);
   const [token, setToken] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [manageLoading, setManageLoading] = useState(false);
+  const [manageError, setManageError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [renameFrom, setRenameFrom] = useState('');
   const [renameTo, setRenameTo] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
@@ -591,7 +595,10 @@ export default function TournamentPage({ params }) {
   });
 
   useEffect(() => {
-    const refreshAuth = () => setToken(getStoredAdminToken());
+    const refreshAuth = () => {
+      setToken(getStoredAdminToken());
+      setUserId(getStoredAdminUserId());
+    };
     refreshAuth();
     window.addEventListener('storage', refreshAuth);
     window.addEventListener('auth-change', refreshAuth);
@@ -637,6 +644,41 @@ export default function TournamentPage({ params }) {
       alert('Network error');
       return false;
     }
+  }
+
+  async function handleArchive(archived) {
+    if (!token) { handleAuthFailure(); return; }
+    setManageError('');
+    setManageLoading(true);
+    try {
+      const res = await fetch(`/api/tournaments/${id}/archive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ archived }),
+      });
+      const data = await res.json();
+      if (res.status === 401) { handleAuthFailure(); return; }
+      if (!res.ok) { setManageError(data.error || 'Failed to update archive state'); return; }
+      setT(data.tournament);
+    } catch { setManageError('Network error'); }
+    finally { setManageLoading(false); }
+  }
+
+  async function handleDelete() {
+    if (!token) { handleAuthFailure(); return; }
+    setManageError('');
+    setManageLoading(true);
+    try {
+      const res = await fetch(`/api/tournaments/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.status === 401) { handleAuthFailure(); return; }
+      if (!res.ok) { setManageError(data.error || 'Failed to delete tournament'); return; }
+      router.push('/');
+    } catch { setManageError('Network error'); }
+    finally { setManageLoading(false); }
   }
 
   async function handleUpdateResult(matchNumber, p1s, p2s) {
@@ -978,6 +1020,12 @@ export default function TournamentPage({ params }) {
                   <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
                     Completed
+                  </span>
+                )}
+                {t.archived && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                    <Archive className="w-3.5 h-3.5 text-slate-500" />
+                    Archived
                   </span>
                 )}
                 {isLive && (
@@ -1510,6 +1558,69 @@ export default function TournamentPage({ params }) {
               )}
             </div>
           </div>
+        )}
+
+        {/* Archive / delete — creator only; the server enforces the same rule */}
+        {token && userId && t.createdBy && String(t.createdBy) === userId && (
+          <section aria-labelledby="manage-tournament-heading" className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-4">
+            <div>
+              <h2 id="manage-tournament-heading" className="text-sm font-bold text-slate-900">Archive or delete</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Archiving hides this tournament from the dashboard; you can restore it from the Archived tab.
+                Deleting removes it and all its results permanently.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleArchive(!t.archived)}
+                disabled={manageLoading}
+                className="theme-secondary-btn text-sm"
+              >
+                {t.archived
+                  ? <><ArchiveRestore className="w-4 h-4" /> Restore from archive</>
+                  : <><Archive className="w-4 h-4" /> Archive tournament</>}
+              </button>
+
+              {!confirmDelete ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={manageLoading}
+                  className="theme-danger-btn text-sm"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete tournament
+                </button>
+              ) : (
+                <div role="group" aria-label="Confirm delete" className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
+                  <span className="text-sm text-red-800">
+                    Permanently delete <strong>{t.name}</strong>? This cannot be undone.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={manageLoading}
+                    className="theme-danger-btn text-sm"
+                  >
+                    {manageLoading ? 'Deleting...' : 'Yes, delete'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={manageLoading}
+                    className="theme-secondary-btn text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {manageError && (
+              <p role="alert" className="text-sm text-red-700">{manageError}</p>
+            )}
+          </section>
         )}
       </main>
     </div>
