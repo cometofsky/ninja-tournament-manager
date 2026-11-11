@@ -57,6 +57,13 @@ services:
       - "traefik.http.routers.${APP_PREFIX:-tournament}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}"
       - "traefik.http.routers.${APP_PREFIX:-tournament}.tls=true"
       - "traefik.http.routers.${APP_PREFIX:-tournament}.tls.certresolver=${TRAEFIK_CERTRESOLVER:-le}"
+      # Canonical host: requests for APP_ALIAS_DOMAIN get a permanent redirect to APP_DOMAIN, so the
+      # admin login (browser storage is per hostname) lives on one origin. The alias must still be in
+      # TRAEFIK_RULE so this router (and its certificate) serves it. Empty alias = regex never matches.
+      - "traefik.http.middlewares.${APP_PREFIX:-tournament}-canonical.redirectregex.regex=^https?://${APP_ALIAS_DOMAIN:-}(:[0-9]+)?/(.*)"
+      - "traefik.http.middlewares.${APP_PREFIX:-tournament}-canonical.redirectregex.replacement=https://${APP_DOMAIN:?APP_DOMAIN is required}/$${2}"
+      - "traefik.http.middlewares.${APP_PREFIX:-tournament}-canonical.redirectregex.permanent=true"
+      - "traefik.http.routers.${APP_PREFIX:-tournament}.middlewares=${APP_PREFIX:-tournament}-canonical"
       - "traefik.http.services.${APP_PREFIX:-tournament}.loadbalancer.server.port=3000"
 
   mongo:
