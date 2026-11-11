@@ -130,6 +130,9 @@ against a real `MONGODB_URI`, exercise the flow, and say what you saw — or mar
 `scripts/deploy.sh` is a real deploy; never run it to "see it working", use `npm run dev`.
 
 Live at **https://tournaments.rafi.ninja** (and `tournament.rafi.ninja`, one LE cert, both SANs).
+The alias redirects to the canonical host only once the VPS `.env` sets
+`APP_ALIAS_DOMAIN=tournament.rafi.ninja` (compose label, → ADR-0002) and the stack is redeployed.
+MEASURED 2026-11-12 before that: `curl https://tournament.rafi.ninja/` → `200`, no redirect.
 MEASURED 2026-06-22; nothing has re-checked since, so re-verify before relying on it.
 - **Host `raafii@204.168.225.250`**, checkout `/srv/apps/tournament_manager`. A shared
   multi-tenant VPS — luxotix, invoice, rafi_ninja, notebook_ninja and a shared Postgres live on

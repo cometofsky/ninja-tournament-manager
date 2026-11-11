@@ -34,3 +34,6 @@
 
 
 2026-09-21 · docs/ai-layer-plan.md merged into docs/architecture.md (Cross-cutting → AI layer) + a scheduling note in docs/development-plan.md, file deleted, AGENTS.md `## AI layer` repointed; gitignored ORIGINAL_REQUEST.md moved to docs/archive/ and the folder listed · `node scripts/check-docs.mjs` PASS; check-preserved shows only the expected AGENTS.md pointer/Project-context losses
+
+2026-11-12 · Users reported "login every time": admin JWT is in localStorage (per hostname) and two hostnames served the app, so a login on one was invisible on the other · Traefik redirectregex alias→canonical (ADR-0002). Next time I see "keeps logging me out", I will first check which hostnames serve the app and whether the token store is per-origin.
+2026-11-12 · `docker compose config` prints `$$` even when the real label is `$` — it re-escapes on output · read the real value with `docker inspect` on a created container. Next time I see `$$` in compose config output, I will inspect the container before "fixing" it.

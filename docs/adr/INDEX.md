@@ -27,3 +27,5 @@ only when they earn their place.
 
 | ADR | Title | Type | Area | Status |
 |---|---|---|---|---|
+| [0001](0001-creator-only-archive-and-delete.md) | Tournaments can be archived or deleted — by their creator only | product | tournaments, auth, dashboard | proposed |
+| [0002](0002-canonical-hostname-redirect.md) | One canonical hostname; the alias 301-redirects to it | technical | deploy, auth, traefik | proposed |

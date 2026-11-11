@@ -108,7 +108,8 @@ Located in [Tournament.js](file:///Users/FaozulRafi/Projects/tournament_manager_
     *   `resolved` (Boolean)
     *   `selected` ([String])
 *   `disqualifiedPlayers` ([String])
-*   `createdBy` (ObjectId referencing `User`)
+*   `archived` (Boolean, default `false`) / `archivedAt` (Date, nullable): hidden from the dashboard's default lists
+*   `createdBy` (ObjectId referencing `User`): the creator — the only user allowed to archive or delete
 *   `champion` (String, nullable)
 
 ---
@@ -222,6 +223,15 @@ Retrieves full details of a specific tournament.
 Renames a player across the entire tournament.
 *   **Request Body**: `{ "oldName": "Alice", "newName": "Alice Smith" }`
 *   **Response**: `200 OK` with the modified tournament document.
+
+#### `DELETE /api/tournaments/[id]` (Creator Only)
+Permanently deletes the tournament. `403` for any admin other than the creator (`createdBy`).
+*   **Response**: `200 OK` with `{ "success": true }`.
+
+#### `POST /api/tournaments/[id]/archive` (Creator Only)
+Archives or restores the tournament. `403` for any admin other than the creator.
+*   **Request Body**: `{ "archived": true }` (or `false` to restore)
+*   **Response**: `200 OK` with the updated tournament.
 
 #### `POST /api/tournaments/[id]/disqualify` (Admin Only)
 Disqualifies or reinstates a player.
@@ -358,6 +368,7 @@ The project includes configuration files optimized for a virtual private server 
 4.  Configure `JWT_SECRET`, `NEXT_PUBLIC_APP_URL`, and SMTP options.
 5.  Set `APP_PREFIX` if you want to isolate containers on the host (defaults to `tournament`).
 6.  Ensure a Traefik proxy is running on the host, attached to the docker network defined by `TRAEFIK_NETWORK` (defaults to `traefik`).
+7.  Optional: to serve a second hostname, list both in `TRAEFIK_RULE` and set `APP_ALIAS_DOMAIN` to the second one; it then 301-redirects to `APP_DOMAIN`, so admins keep a single login (browser storage is per hostname).
 
 ### Run Deployment Script
 Execute the deployment script [deploy.sh](file:///Users/FaozulRafi/Projects/tournament_manager_next/scripts/deploy.sh):
